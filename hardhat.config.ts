@@ -9,6 +9,7 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: 0,
     tokenOwner: 1,
+    user0:2,
   },
 };
 export default config;
