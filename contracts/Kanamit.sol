@@ -115,7 +115,7 @@ abstract contract ERC721 {
 
 contract AssetKeeper {
     /*** EVENTS ***/
-    event Create(address owner, uint256 AssetId, uint256 assetHash);
+    event Create(address owner, uint256 AssetId, uint256 assetHash, string uri);
     event Transfer(address from, address to, uint256 tokenId);
 
     struct Asset {
@@ -164,7 +164,7 @@ contract AssetKeeper {
         require(newAssetId == uint256(uint32(newAssetId)));
 
         // emit the create event
-        Create(_owner, newAssetId, assetHash);
+        Create(_owner, newAssetId, assetHash, _uri);
 
         // This will assign ownership, and also emit the Transfer event as
         // per ERC721 draft
