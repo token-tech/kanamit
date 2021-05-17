@@ -33,8 +33,28 @@ describe("create asset", function () {
     console.log('user0Balance', user0Balance.toNumber());
     console.log('supply', supply.toNumber());
 
-    let nftId0 = await kanamitCore.createAsset(user0, "https://twitter.com/zhoushx1018/status/1385995589117124614");
-    console.log('nftId0', nftId0);
+
+    let prmCreate = new Promise((resolve, reject) => {
+      kanamitCore.on('Create', (owner, AssetId, assetHash, uri) => {
+
+        resolve({
+          owner: owner,
+          AssetId: AssetId,
+          assetHash: assetHash,
+          uri: uri
+        });
+      });
+
+      setTimeout(() => {
+        reject(new Error('timeout'));
+      }, 600000)
+    });
+
+    let assetObject = await kanamitCore.createAsset(user0, "https://twitter.com/zhoushx1018/status/1385995589117124614");
+
+    let eventCreate = await prmCreate;
+    console.log("eventCreate", eventCreate);
+
 
     ownerBalance = await kanamitCore.balanceOf(tokenOwner);
     user0Balance = await kanamitCore.balanceOf(user0);
@@ -44,8 +64,28 @@ describe("create asset", function () {
     console.log('user0Balance', user0Balance.toNumber());
     console.log('supply', supply.toNumber());
 
-    let nftId1 = await kanamitCore.createAsset(user0, "https://twitter.com/zhoushx1018/status/1385995589117124614");
-    console.log('nftId1', nftId1);
+    let prmCreate1 = new Promise((resolve, reject) => {
+      kanamitCore.on('Create', (owner, AssetId, assetHash, uri) => {
+
+        resolve({
+          owner: owner,
+          AssetId: AssetId,
+          assetHash: assetHash,
+          uri: uri
+        });
+      });
+
+      setTimeout(() => {
+        reject(new Error('timeout'));
+      }, 600000)
+    });
+
+
+    let nftId1 = await kanamitCore.createAsset(user0, "https://twitter.com/zhoushx1018/status/1394366048300720130");
+
+    let eventCreate1 = await prmCreate1;
+    console.log("eventCreate1", eventCreate1);
+
 
     ownerBalance = await kanamitCore.balanceOf(tokenOwner);
     user0Balance = await kanamitCore.balanceOf(user0);
@@ -55,11 +95,11 @@ describe("create asset", function () {
     console.log('user0Balance', user0Balance.toNumber());
     console.log('supply', supply.toNumber());
 
-    let assetHash0 = await kanamitCore.getAsset(0);
-    console.log('assetHash0', assetHash0);
+    // let assetHash0 = await kanamitCore.getAsset(0);
+    // console.log('assetHash0', assetHash0);
 
-    let assetHash1 = await kanamitCore.getAsset(0);
-    console.log('assetHash1', assetHash1);
+    // let assetHash1 = await kanamitCore.getAsset(1);
+    // console.log('assetHash1', assetHash1);
 
   });
 });
