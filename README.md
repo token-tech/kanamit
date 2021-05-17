@@ -28,7 +28,7 @@ $ yarn add -D hardhat-deploy hardhat-deploy-ethers ethers chai chai-ethers mocha
 $ yarn hardhat compile
 ```
 
-## 部署脚本
+## 部署合约
 
 ```
 ## 编辑 deploy/001_deploy_token.ts
@@ -38,3 +38,8 @@ $ yarn hardhat deploy
 
 ```
 
+## 合约单元测试
+
+```
+$ npx hardhat test
+```
