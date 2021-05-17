@@ -148,8 +148,8 @@ contract AssetKeeper {
         Transfer(_from, _to, _tokenId);
     }
 
-    function _createAsset(address _owner, string memory _uri)
-        internal
+    function createAsset(address _owner, string memory _uri)
+        public
         returns (uint256)
     {
         bytes32 uriHash = keccak256(abi.encodePacked(_uri));
