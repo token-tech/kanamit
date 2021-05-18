@@ -22,10 +22,6 @@ contract KanamitTrade {
         deposit();
     }
 
-    function mint(uint256 amount) public {
-        balanceOf[msg.sender] += amount;
-    }
-
     function deposit() public payable {
         balanceOf[msg.sender] += msg.value;
         emit Deposit(msg.sender, msg.value);
