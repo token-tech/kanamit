@@ -70,7 +70,7 @@ contract Ownable is Context {
     }
 }
 
-abstract contract ERC721 {
+abstract contract IERC721 {
     // Required methods
     function totalSupply() public view virtual returns (uint256 total);
 
@@ -114,7 +114,7 @@ abstract contract ERC721 {
         returns (bool);
 }
 
-contract AssetKeeper {
+contract KanamitCore is IERC721, Ownable {
     /*** EVENTS ***/
     event Create(address owner, uint256 AssetId, uint256 assetHash, string uri);
     event Transfer(address from, address to, uint256 tokenId);
@@ -125,9 +125,9 @@ contract AssetKeeper {
 
     /*** STORAGE ***/
     Asset[] assets;
-    mapping(uint256 => address) public AssetIndexToOwner;
-    mapping(address => uint256) ownershipTokenCount;
-    mapping(uint256 => address) public AssetIndexToApproved;
+    mapping(uint256 => address) private AssetIndexToOwner;
+    mapping(address => uint256) private ownershipTokenCount;
+    mapping(uint256 => address) private AssetIndexToApproved;
 
     /// @dev Assigns ownership of a specific Asset to an address.
     function _transfer(
@@ -173,9 +173,7 @@ contract AssetKeeper {
 
         return newAssetId;
     }
-}
 
-contract KanamitCore is ERC721, AssetKeeper, Ownable {
     bytes4 constant InterfaceSignature_ERC165 =
         bytes4(keccak256("supportsInterface(bytes4)"));
 
