@@ -52,7 +52,7 @@ describe("create asset", function () {
 
     let assetObject = await kanamitCore.createAsset(user0, "https://twitter.com/zhoushx1018/status/1385995589117124614");
     let eventCreate = await prmCreate;
-    console.log("eventCreate", eventCreate);
+    // console.log("eventCreate", eventCreate);
     console.log("AssetId", eventCreate["AssetId"].toNumber());
     console.log("assetHash", ethers.BigNumber.from(eventCreate["assetHash"]).toHexString());
 
@@ -92,7 +92,7 @@ describe("create asset", function () {
 
     let nftId1 = await kanamitCore.createAsset(user0, "https://twitter.com/zhoushx1018/status/1394366048300720130");
     eventCreate = await prmCreate;
-    console.log("eventCreate", eventCreate);
+    // console.log("eventCreate", eventCreate);
     console.log("AssetId", eventCreate["AssetId"].toNumber());
     console.log("assetHash", ethers.BigNumber.from(eventCreate["assetHash"]).toHexString());
 

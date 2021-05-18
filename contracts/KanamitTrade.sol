@@ -1,7 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
+interface IKanamitCore {    
+    function totalSupply() external view returns (uint256);
+
+    function createAsset(address _owner, string memory _uri)
+        external
+        returns (uint256);
+
+    function getAsset(uint256 _id) external view returns (uint256 assetHash) ;
+}
+
 contract KanamitTrade {
+    address public immutable kCore;
+
     string public name = "Kanamit Trade contract";
     string public symbol = "KanamitTrade";
     uint8 public decimals = 18;
@@ -13,6 +25,30 @@ contract KanamitTrade {
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
+
+    constructor(address _kCore) public {
+        kCore = _kCore;
+    }
+
+    function coreAddress() public view returns (address) {
+        return kCore;
+    }
+
+    function coreTotalSupply() public view returns (uint256) {
+        return IKanamitCore(kCore).totalSupply();
+    }
+
+    function coreCreateAsset(address _owner, string memory _uri)
+        public
+        returns (uint256)
+    {
+        return IKanamitCore(kCore).createAsset(_owner, _uri);
+    }
+
+    function coreGetAsset(uint256 _id) external view returns (uint256 assetHash) {        
+        return IKanamitCore(kCore).getAsset(_id);
+    }
+
 
     fallback() external payable {
         deposit();
