@@ -12,6 +12,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     args: [],
     log: true,
   });
+
+  await deploy('KanamitTrade',{
+    from: deployer,
+    args: [],
+    log: true,
+  })
 };
 export default func;
-func.tags = ['KanamitCore'];
+func.tags = ['KanamitCore', 'KanamitTrade'];
