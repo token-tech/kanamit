@@ -1,18 +1,87 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.12;
 
-interface IKanamitCore {    
+abstract contract Context {
+    function _msgSender() internal view virtual returns (address payable) {
+        return msg.sender;
+    }
+
+    function _msgData() internal view virtual returns (bytes memory) {
+        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+        return msg.data;
+    }
+}
+
+contract Ownable is Context {
+    address private _owner;
+
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+
+    /**
+     * @dev Initializes the contract setting the deployer as the initial owner.
+     */
+    constructor() internal {
+        address msgSender = _msgSender();
+        _owner = msgSender;
+        emit OwnershipTransferred(address(0), msgSender);
+    }
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(_owner == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public virtual onlyOwner {
+        emit OwnershipTransferred(_owner, address(0));
+        _owner = address(0);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
+    }
+}
+
+interface IKanamitCore {
     function totalSupply() external view returns (uint256);
 
     function createAsset(address _owner, string memory _uri)
         external
         returns (uint256);
 
-    function getAsset(uint256 _id) external view returns (uint256 assetHash) ;
+    function getAsset(uint256 _id) external view returns (uint256 assetHash);
 }
 
-contract KanamitTrade {
-    address public immutable kCore;
+contract KanamitTrade is Ownable {
+    address private kCore;
 
     string public name = "Kanamit Trade contract";
     string public symbol = "KanamitTrade";
@@ -34,6 +103,11 @@ contract KanamitTrade {
         return kCore;
     }
 
+    function setCoreAddress(address _kCore) public onlyOwner() {
+        require(_kCore != address(0), "invalid address");
+        kCore = _kCore;
+    }
+
     function coreTotalSupply() public view returns (uint256) {
         return IKanamitCore(kCore).totalSupply();
     }
@@ -45,10 +119,13 @@ contract KanamitTrade {
         return IKanamitCore(kCore).createAsset(_owner, _uri);
     }
 
-    function coreGetAsset(uint256 _id) external view returns (uint256 assetHash) {        
+    function coreGetAsset(uint256 _id)
+        external
+        view
+        returns (uint256 assetHash)
+    {
         return IKanamitCore(kCore).getAsset(_id);
     }
-
 
     fallback() external payable {
         deposit();

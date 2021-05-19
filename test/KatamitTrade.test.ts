@@ -3,7 +3,7 @@ import { expect } from "./chai-setup";
 import { ethers, deployments, getNamedAccounts } from 'hardhat';
 
 describe("total supply", function () {
-  it("total supply相关测试", async function () {
+  it("total supply测试", async function () {
     await deployments.fixture(["KanamitTrade"]);
     const { tokenOwner, user0 } = await getNamedAccounts();
     const KanamitTrade = await ethers.getContract("KanamitTrade");
@@ -14,30 +14,62 @@ describe("total supply", function () {
     console.log('supply', supply.toNumber());
 
     expect(ownerBalance).to.equal(supply);
+  });
 
-    let coreAddress = await KanamitTrade.coreAddress();
-    console.log('coreAddress', coreAddress);
+  it("内置core合约调用测试", async function () {
+    await deployments.fixture(["KanamitTrade"]);
+    const { deployer, tokenOwner, user0 } = await getNamedAccounts();
+    const KanamitTrade = await ethers.getContract("KanamitTrade");
 
-    let coreTotalSupply = await KanamitTrade.coreTotalSupply();
-    console.log('coreTotalSupply', coreTotalSupply.toNumber());
+    //地址列表
+    console.log('deployer', deployer, 'tokenOwner', tokenOwner, 'user0', user0);
+
+    await KanamitTrade.coreAddress().then(function (coreAddress) {
+      console.log('coreAddress', coreAddress);
+    });
+
+    await KanamitTrade.coreTotalSupply().then(function (coreTotalSupply) {
+      console.log('coreTotalSupply', coreTotalSupply);
+    });
 
     let index = 0;
 
     await KanamitTrade.coreCreateAsset(user0, "https://twitter.com/zhoushx1018/status/1385995589117124614");
 
-    let assetHash = await KanamitTrade.coreGetAsset(index++);
-    coreTotalSupply = await KanamitTrade.coreTotalSupply();
+    await KanamitTrade.coreGetAsset(index++).then(function (assetHash) {
+      console.log('assetHash', assetHash);
+    });
 
-    console.log('assetHash', assetHash);
-    console.log('coreTotalSupply', coreTotalSupply.toNumber());    
+    await KanamitTrade.coreTotalSupply().then(function (coreTotalSupply) {
+      console.log('coreTotalSupply', coreTotalSupply);
+    });
 
     await KanamitTrade.coreCreateAsset(user0, "https://twitter.com/zhoushx1018/status/1394366048300720130");
 
-    assetHash = await KanamitTrade.coreGetAsset(index++);
-    coreTotalSupply = await KanamitTrade.coreTotalSupply();
+    await KanamitTrade.coreGetAsset(index++).then(function (assetHash) {
+      console.log('assetHash', assetHash);
+    });
 
-    console.log('assetHash', assetHash);
-    console.log('coreTotalSupply', coreTotalSupply.toNumber());
+    await KanamitTrade.coreTotalSupply().then(function (coreTotalSupply) {
+      console.log('coreTotalSupply', coreTotalSupply);
+    });
+
+    await KanamitTrade.setCoreAddress(user0);
+
+    await KanamitTrade.coreAddress().then(function (coreAddress) {
+      console.log('coreAddress', coreAddress);
+    });
+
+    await KanamitTrade.setCoreAddress(tokenOwner);
+
+    await KanamitTrade.coreAddress().then(function (coreAddress) {
+      console.log('coreAddress', coreAddress);
+    });
+
+    await KanamitTrade.owner().then(function (ownerAddress) {
+      console.log('ownerAddress', ownerAddress);
+    }
+    );
 
   });
 
