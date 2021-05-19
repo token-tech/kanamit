@@ -59,7 +59,7 @@ describe("create asset", function () {
     ownerBalance = await kanamitCore.balanceOf(tokenOwner);
     user0Balance = await kanamitCore.balanceOf(user0);
     supply = await kanamitCore.totalSupply();
-    
+
     //NFT总量验证
     expect(supply).to.equal(++iCount);
 
@@ -68,10 +68,17 @@ describe("create asset", function () {
     console.log('supply', supply.toNumber());
 
     //根据AssetId验证NFT
-    let currAssetHash = await kanamitCore.getAsset(iCount-1);
+    let currAssetHash = await kanamitCore.getAssetById(iCount - 1);
     expect(currAssetHash).to.equal(eventCreate["assetHash"]);
 
     console.log("currAssetHash", ethers.BigNumber.from(currAssetHash).toHexString());
+
+    //根据ownerAddress、assetHash查找NFT
+    await kanamitCore.getAsset(user0, currAssetHash).then(function (assetId) {
+      console.log("assetId", assetId);
+      expect(currAssetHash).to.equal(eventCreate["assetHash"]);
+    });
+
 
     //---------创建新的NFT--------------------------
     prmCreate = new Promise((resolve, reject) => {
@@ -99,19 +106,25 @@ describe("create asset", function () {
     ownerBalance = await kanamitCore.balanceOf(tokenOwner);
     user0Balance = await kanamitCore.balanceOf(user0);
     supply = await kanamitCore.totalSupply();
-    
+
     //NFT总量验证
     expect(supply).to.equal(++iCount);
 
     console.log('ownerBalance', ownerBalance.toNumber());
     console.log('user0Balance', user0Balance.toNumber());
     console.log('supply', supply.toNumber());
-    
+
     //根据AssetId验证NFT
-    currAssetHash = await kanamitCore.getAsset(iCount-1);
+    currAssetHash = await kanamitCore.getAssetById(iCount - 1);
     expect(currAssetHash).to.equal(eventCreate["assetHash"]);
 
     console.log("currAssetHash", ethers.BigNumber.from(currAssetHash).toHexString());
-    
+
+    //根据ownerAddress、assetHash查找NFT
+    await kanamitCore.getAsset(user0, currAssetHash).then(function (assetId) {
+      console.log("assetId", assetId);
+      expect(iCount - 1).to.equal(assetId);
+    });
+
   });
 });

@@ -125,9 +125,10 @@ contract KanamitCore is IERC721, Ownable {
 
     /*** STORAGE ***/
     Asset[] assets;
-    mapping(uint256 => address) private AssetIndexToOwner;
-    mapping(address => uint256) private ownershipTokenCount;
-    mapping(uint256 => address) private AssetIndexToApproved;
+    mapping(uint256 => address) private AssetIndexToOwner; // map<assetId , addrOwner>
+    mapping(address => uint256) private OwnerAssetCount; // map<addrOwner, uintCount>
+    mapping(address => mapping(uint256 => uint256)) private OwnerAssets; // map<addrOwner, map<hashUri, assetId> >
+    mapping(uint256 => address) private AssetIndexToApproved; //map<assetId, addrApproved>
 
     /// @dev Assigns ownership of a specific Asset to an address.
     function _transfer(
@@ -135,13 +136,16 @@ contract KanamitCore is IERC721, Ownable {
         address _to,
         uint256 _tokenId
     ) internal {
+        uint256 assetHash = assets[_tokenId].assetHash;
         // Since the number of Assets is capped to 2^32 we can't overflow this
-        ownershipTokenCount[_to]++;
+        OwnerAssetCount[_to]++;
+        OwnerAssets[_to][assetHash] = _tokenId;
         // transfer ownership
         AssetIndexToOwner[_tokenId] = _to;
         // When creating new Assets _from is 0x0, but we can't account that address.
         if (_from != address(0)) {
-            ownershipTokenCount[_from]--;
+            OwnerAssetCount[_from]--;
+            delete OwnerAssets[_from][assetHash];
             // clear any previously approved ownership exchange
             delete AssetIndexToApproved[_tokenId];
         }
@@ -200,7 +204,7 @@ contract KanamitCore is IERC721, Ownable {
         override
         returns (uint256 count)
     {
-        return ownershipTokenCount[_owner];
+        return OwnerAssetCount[_owner];
     }
 
     function ownerOf(uint256 _tokenId)
@@ -294,9 +298,21 @@ contract KanamitCore is IERC721, Ownable {
             (_interfaceID == InterfaceSignature_ERC721));
     }
 
-    function getAsset(uint256 _id) external view returns (uint256 assetHash) {
+    function getAssetById(uint256 _id)
+        external
+        view
+        returns (uint256 assetHash)
+    {
         Asset storage asset = assets[_id];
 
         assetHash = asset.assetHash;
+    }
+
+    function getAsset(address owner, uint256 assetHash)
+        external
+        view
+        returns (uint256 assetId)
+    {
+        assetId = OwnerAssets[owner][assetHash];
     }
 }
