@@ -77,7 +77,7 @@ interface IKanamitCore {
         external
         returns (uint256);
 
-    function getAsset(uint256 _id) external view returns (uint256 assetHash);
+    function getAssetById(uint256 _id) external view returns (uint256 assetHash);
 }
 
 contract KanamitTrade is Ownable {
@@ -119,12 +119,12 @@ contract KanamitTrade is Ownable {
         return IKanamitCore(kCore).createAsset(_owner, _uri);
     }
 
-    function coreGetAsset(uint256 _id)
+    function coreGetAssetById(uint256 _id)
         external
         view
         returns (uint256 assetHash)
     {
-        return IKanamitCore(kCore).getAsset(_id);
+        return IKanamitCore(kCore).getAssetById(_id);
     }
 
     fallback() external payable {

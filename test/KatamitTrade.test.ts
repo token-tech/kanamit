@@ -36,7 +36,7 @@ describe("total supply", function () {
 
     await KanamitTrade.coreCreateAsset(user0, "https://twitter.com/zhoushx1018/status/1385995589117124614");
 
-    await KanamitTrade.coreGetAsset(index++).then(function (assetHash) {
+    await KanamitTrade.coreGetAssetById(index++).then(function (assetHash) {
       console.log('assetHash', assetHash);
     });
 
@@ -46,7 +46,7 @@ describe("total supply", function () {
 
     await KanamitTrade.coreCreateAsset(user0, "https://twitter.com/zhoushx1018/status/1394366048300720130");
 
-    await KanamitTrade.coreGetAsset(index++).then(function (assetHash) {
+    await KanamitTrade.coreGetAssetById(index++).then(function (assetHash) {
       console.log('assetHash', assetHash);
     });
 
