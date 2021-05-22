@@ -77,7 +77,10 @@ interface IKanamitCore {
         external
         returns (uint256);
 
-    function getAssetById(uint256 _id) external view returns (uint256 assetHash);
+    function getAssetById(uint256 _id)
+        external
+        view
+        returns (uint256 assetHash);
 }
 
 contract KanamitTrade is Ownable {
@@ -86,6 +89,27 @@ contract KanamitTrade is Ownable {
     string public name = "Kanamit Trade contract";
     string public symbol = "KanamitTrade";
     uint8 public decimals = 18;
+
+    struct Bid {
+        uint256 bidId;
+        uint256 reqId; //对应于中心化系统的 bid表的id字段
+        address bidder; //出价地址
+        uint256 amount; //出价金额
+        bool cancel; //是否取消
+    }
+
+    struct AuctionInfo {
+        uint256 auctionId;
+        uint256 hashUri;
+        uint256 status; //状态；0，拍卖关闭；1，拍卖开启
+        //Bid数据结构--数组+map
+        uint256[] arrReqId; //出价信息数组；数据下标即为 bidId
+        mapping(uint256 => Bid) mapReqIdBid; //map<reqId, Bid>
+    }
+
+    uint256 private _auctionId; //当前拍卖ID；
+    mapping(uint256 => AuctionInfo) private mapAuctionInfo; //map<auctionId, auctionInfo>
+    mapping(uint256 => uint256) private mapUriAuctionId; //map<hashUri, AuctionId>    
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event Transfer(address indexed src, address indexed dst, uint256 wad);
@@ -97,6 +121,83 @@ contract KanamitTrade is Ownable {
 
     constructor(address _kCore) public {
         kCore = _kCore;
+        _auctionId = 1; //初始化为1； 0值无效； 后续map查询，当auctionId为0，视为无效auctionId
+    }
+
+    function _getCurrAuctionId() public view returns (uint256) {
+        return _auctionId;
+    }
+
+    //@brief 获取当前最大可用的auctionID，并使_auctionId+1
+    function _nextAuctionId() public returns (uint256) {
+        return _auctionId++;
+    }
+
+    function bid(
+        uint256 reqId,
+        string memory uri,
+        address addressBidder,
+        uint256 amount
+    )
+        public
+        payable
+        returns (
+            uint256 retReqId,
+            uint256 retAuctionId,
+            uint256 retBidId
+        )
+    {
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        uint256 currAuctionId = mapUriAuctionId[hashUri];
+        bool bNewAuction = false;
+
+        //是否需要新增拍卖
+        if (0 == currAuctionId) {
+            //uri之前没有拍卖过，新增拍卖信息
+            bNewAuction = true;
+        } else {
+            //判断当前拍卖信息，如果是已关闭，则需要新增拍卖信息
+            uint256 status = mapAuctionInfo[currAuctionId].status;
+            if (1 == status) bNewAuction = true;  //旧的拍卖已关闭；需要新增拍卖
+        }
+
+        //新增拍卖
+        if (true == bNewAuction) {            
+            currAuctionId = _nextAuctionId();
+            mapUriAuctionId[hashUri] = currAuctionId;
+        }
+
+        //出价额度校验
+        uint256 currBidLen = mapAuctionInfo[currAuctionId].arrReqId.length;
+        if (currBidLen > 0) {
+            uint256 currReqId =
+                mapAuctionInfo[currAuctionId].arrReqId[currBidLen - 1];
+            require(
+                amount > mapAuctionInfo[hashUri].mapReqIdBid[currReqId].amount,
+                "must large than last bid amount"
+            );
+        }
+
+        //新增出价
+        mapAuctionInfo[currAuctionId].auctionId = currAuctionId;
+        mapAuctionInfo[currAuctionId].hashUri = hashUri;
+        mapAuctionInfo[currAuctionId].arrReqId.push(reqId);
+        uint256 bidId = mapAuctionInfo[currAuctionId].arrReqId.length -1;
+        
+        mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].bidId = bidId;
+        mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].reqId = reqId;
+        mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].bidder = addressBidder;
+        mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].amount = amount;
+        mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].cancel = false;
+
+
+
+        balanceOf[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
+
+        retReqId = reqId;
+        retAuctionId = currAuctionId;
+        retBidId = bidId;
     }
 
     function coreAddress() public view returns (address) {
