@@ -75,7 +75,7 @@ describe("total supply", function () {
 
   it("转币测试", async function () {
     await deployments.fixture(["KanamitTrade"]);
-    const { tokenOwner, user0 } = await getNamedAccounts();
+    const { tokenOwner, user0, deployer } = await getNamedAccounts();
     const KanamitTrade = await ethers.getContract("KanamitTrade");
     let ownerBalance = await KanamitTrade.balanceOf(tokenOwner);
     let supply = await KanamitTrade.totalSupply();
@@ -85,18 +85,42 @@ describe("total supply", function () {
 
     expect(ownerBalance).to.equal(supply);
 
-    // KanamitTrade.deposit({value: 100000000000});
-    KanamitTrade.deposit({ value: ethers.utils.parseEther("0.0000012345") });
+    //deposit
+    KanamitTrade.deposit({ value: ethers.utils.parseEther("1.2345678") });
 
     const user0Balance = await KanamitTrade.balanceOf(user0);
-    console.log('user0Balance', user0Balance.toNumber());
+    console.log('ktm-user0Balance', user0Balance.toNumber());
 
     ownerBalance = await KanamitTrade.balanceOf(tokenOwner);
-    console.log('ownerBalance', ownerBalance.toNumber());
+    console.log('ktm-ownerBalance', ownerBalance.toNumber());
 
-    supply = await KanamitTrade.totalSupply();
-    console.log('supply', supply.toNumber());
+    await KanamitTrade.balanceOf(deployer).then(function (deployerBalance) {
+      console.log('ktm-deployerBalance', ethers.utils.formatEther(deployerBalance));
+    });
 
+    await KanamitTrade.totalSupply().then(function (supply) {
+      console.log('ktm-supply', ethers.utils.formatEther(supply));
+    });
+
+    
+    await ethers.provider.getBalance(deployer).then(function (deployerBalance) {
+      console.log('eth-DeployerBalance', ethers.utils.formatEther(deployerBalance));
+    });;
+
+    //withdraw
+    KanamitTrade.withdraw(ethers.utils.parseEther("0.2"));
+
+    await KanamitTrade.balanceOf(deployer).then(function (deployerBalance) {
+      console.log('ktm-deployerBalance', ethers.utils.formatEther(deployerBalance));
+    });
+
+    await KanamitTrade.totalSupply().then(function (supply) {
+      console.log('ktm-supply', ethers.utils.formatEther(supply));
+    });
+
+    await ethers.provider.getBalance(deployer).then(function (deployerBalance) {
+      console.log('eth-DeployerBalance', ethers.utils.formatEther(deployerBalance));
+    });;
   });
 
 });
