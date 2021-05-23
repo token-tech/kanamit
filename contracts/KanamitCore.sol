@@ -116,11 +116,11 @@ abstract contract IERC721 {
 
 contract KanamitCore is IERC721, Ownable {
     /*** EVENTS ***/
-    event Create(address owner, uint256 AssetId, uint256 assetHash, string uri);
+    event Create(address owner, uint256 AssetId, uint256 hashUri, string uri);
     event Transfer(address from, address to, uint256 tokenId);
 
     struct Asset {
-        uint256 assetHash;
+        uint256 hashUri;
     }
 
     /*** STORAGE ***/
@@ -136,16 +136,16 @@ contract KanamitCore is IERC721, Ownable {
         address _to,
         uint256 _tokenId
     ) internal {
-        uint256 assetHash = assets[_tokenId].assetHash;
+        uint256 hashUri = assets[_tokenId].hashUri;
         // Since the number of Assets is capped to 2^32 we can't overflow this
         OwnerAssetCount[_to]++;
-        OwnerAssets[_to][assetHash] = _tokenId;
+        OwnerAssets[_to][hashUri] = _tokenId;
         // transfer ownership
         AssetIndexToOwner[_tokenId] = _to;
         // When creating new Assets _from is 0x0, but we can't account that address.
         if (_from != address(0)) {
             OwnerAssetCount[_from]--;
-            delete OwnerAssets[_from][assetHash];
+            delete OwnerAssets[_from][hashUri];
             // clear any previously approved ownership exchange
             delete AssetIndexToApproved[_tokenId];
         }
@@ -157,9 +157,10 @@ contract KanamitCore is IERC721, Ownable {
         public
         returns (uint256)
     {
-        bytes32 uriHash = keccak256(abi.encodePacked(_uri));
-        uint256 assetHash = uint256(uriHash);
-        Asset memory _asset = Asset({assetHash: assetHash});
+        // uint256 assetHash = uint256(keccak256(abi.encodePacked(_uri)));
+
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(_uri)));
+        Asset memory _asset = Asset({hashUri: hashUri});
 
         assets.push(_asset);
         uint256 newAssetId = assets.length - 1;
@@ -169,7 +170,7 @@ contract KanamitCore is IERC721, Ownable {
         require(newAssetId == uint256(uint32(newAssetId)));
 
         // emit the create event
-        Create(_owner, newAssetId, assetHash, _uri);
+        Create(_owner, newAssetId, hashUri, _uri);
 
         // This will assign ownership, and also emit the Transfer event as
         // per ERC721 draft
@@ -301,18 +302,18 @@ contract KanamitCore is IERC721, Ownable {
     function getAssetById(uint256 _id)
         external
         view
-        returns (uint256 assetHash)
+        returns (uint256 hashUri)
     {
         Asset storage asset = assets[_id];
 
-        assetHash = asset.assetHash;
+        hashUri = asset.hashUri;
     }
 
-    function getAsset(address owner, uint256 assetHash)
+    function getAsset(address owner, uint256 hashUri)
         external
         view
         returns (uint256 assetId)
     {
-        assetId = OwnerAssets[owner][assetHash];
+        assetId = OwnerAssets[owner][hashUri];
     }
 }
