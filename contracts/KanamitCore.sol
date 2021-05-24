@@ -129,6 +129,14 @@ contract KanamitCore is IERC721, Ownable {
     mapping(address => uint256) private OwnerAssetCount; // map<addrOwner, uintCount>
     mapping(address => mapping(uint256 => uint256)) private OwnerAssets; // map<addrOwner, map<hashUri, assetId> >
     mapping(uint256 => address) private AssetIndexToApproved; //map<assetId, addrApproved>
+    mapping(uint256 => uint256) private mapUriAssetId; //map<hashUri, AssetId>
+
+    constructor() public {
+        //初始化第一个元素；addressOwner 为address(0)， uri为空字符""，对应的AssetId为0；
+        uint256 hashUri = uint256(keccak256(abi.encodePacked("")));
+        Asset memory currAsset = Asset({hashUri: hashUri});
+        assets.push(currAsset);
+    }
 
     /// @dev Assigns ownership of a specific Asset to an address.
     function _transfer(
@@ -140,6 +148,7 @@ contract KanamitCore is IERC721, Ownable {
         // Since the number of Assets is capped to 2^32 we can't overflow this
         OwnerAssetCount[_to]++;
         OwnerAssets[_to][hashUri] = _tokenId;
+        mapUriAssetId[hashUri] = _tokenId;
         // transfer ownership
         AssetIndexToOwner[_tokenId] = _to;
         // When creating new Assets _from is 0x0, but we can't account that address.
@@ -157,12 +166,15 @@ contract KanamitCore is IERC721, Ownable {
         public
         returns (uint256)
     {
-        // uint256 assetHash = uint256(keccak256(abi.encodePacked(_uri)));
-
         uint256 hashUri = uint256(keccak256(abi.encodePacked(_uri)));
-        Asset memory _asset = Asset({hashUri: hashUri});
+        uint256 assetId = getAssetId(_uri);         
 
-        assets.push(_asset);
+        if (assetId != 0) {
+            return assetId;
+        }
+
+        Asset memory currAsset = Asset({hashUri: hashUri});
+        assets.push(currAsset);
         uint256 newAssetId = assets.length - 1;
 
         // It's probably never going to happen, 4 billion cats is A LOT, but
@@ -206,6 +218,28 @@ contract KanamitCore is IERC721, Ownable {
         returns (uint256 count)
     {
         return OwnerAssetCount[_owner];
+    }
+
+    function getAssetId(string memory uri)
+        public
+        view
+        returns (uint256 assetId)
+    {
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        assetId = mapUriAssetId[hashUri];
+    }
+
+    function getOwner(string memory uri)
+        public
+        view
+        returns (address addressOwner)
+    {
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        uint256 assetId = mapUriAssetId[hashUri];
+
+        if (assetId == 0) return address(0);
+
+        return AssetIndexToOwner[assetId];
     }
 
     function ownerOf(uint256 _tokenId)
@@ -299,11 +333,7 @@ contract KanamitCore is IERC721, Ownable {
             (_interfaceID == InterfaceSignature_ERC721));
     }
 
-    function getAssetById(uint256 _id)
-        external
-        view
-        returns (uint256 hashUri)
-    {
+    function getAssetById(uint256 _id) external view returns (uint256 hashUri) {
         Asset storage asset = assets[_id];
 
         hashUri = asset.hashUri;

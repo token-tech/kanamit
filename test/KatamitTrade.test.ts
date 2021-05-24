@@ -232,7 +232,7 @@ describe("total supply", function () {
       console.log('result', result);
 
       //uri拍卖已存在，auctionId不能为0
-      expect(result.auctionId).not.to.equal(0); 
+      expect(result.auctionId).not.to.equal(0);
     });
 
     await KanamitTrade.getAuctionStatus("https://foo.bar.org").then(function (result) {
@@ -241,6 +241,13 @@ describe("total supply", function () {
       //uri拍卖不存在，auctionId为0
       expect(result.auctionId).to.equal(0);
     });
+
+    await KanamitTrade.accept(uri).then(function (result) {
+    });
+
+    // await KanamitTrade.accept("https://foo.bar.org").then(function (result) {
+    // });
+
   });
 
 });

@@ -13,7 +13,7 @@ describe("total supply", function () {
     console.log('ownerBalance', ownerBalance.toNumber());
     console.log('supply', supply.toNumber());
 
-    expect(ownerBalance).to.equal(supply);
+    expect(ownerBalance + 1).to.equal(supply); //supply比 tokenOwner多了一个 assetId 0
   });
 });
 
@@ -27,11 +27,11 @@ describe("create asset", function () {
     let ownerBalance = await kanamitCore.balanceOf(tokenOwner);
     let user0Balance = await kanamitCore.balanceOf(user0);
     let supply = await kanamitCore.totalSupply();
-    let iCount = 0;
-
     console.log('ownerBalance', ownerBalance.toNumber());
     console.log('user0Balance', user0Balance.toNumber());
     console.log('supply', supply.toNumber());
+
+    let iCount = supply.toNumber(); //assertId为0是默认初始化的，因此这里iCount为1
 
     //---------创建新的NFT--------------------------
     let prmCreate = new Promise((resolve, reject) => {
@@ -50,7 +50,8 @@ describe("create asset", function () {
       }, 600000)
     });
 
-    let assetObject = await kanamitCore.createAsset(user0, "https://twitter.com/zhoushx1018/status/1385995589117124614");
+    let uri = "https://twitter.com/zhoushx1018/status/1385995589117124614";
+    let assetObject = await kanamitCore.createAsset(user0, uri);
     let eventCreate = await prmCreate;
     // console.log("eventCreate", eventCreate);
     console.log("AssetId", eventCreate["AssetId"].toNumber());
@@ -97,7 +98,8 @@ describe("create asset", function () {
       }, 600000)
     });
 
-    let nftId1 = await kanamitCore.createAsset(user0, "https://twitter.com/zhoushx1018/status/1394366048300720130");
+    let uri1 = "https://twitter.com/zhoushx1018/status/1394366048300720130";
+    let nftId1 = await kanamitCore.createAsset(user0, uri1);
     eventCreate = await prmCreate;
     // console.log("eventCreate", eventCreate);
     console.log("AssetId", eventCreate["AssetId"].toNumber());
@@ -122,6 +124,12 @@ describe("create asset", function () {
 
     //根据ownerAddress、assetHash查找NFT
     await kanamitCore.getAsset(user0, currAssetHash).then(function (assetId) {
+      console.log("assetId", assetId);
+      expect(iCount - 1).to.equal(assetId);
+    });
+
+    //根据uri查找 NFT
+    await kanamitCore.getAssetId(uri1).then(function (assetId) {
       console.log("assetId", assetId);
       expect(iCount - 1).to.equal(assetId);
     });
