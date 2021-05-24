@@ -1,4 +1,4 @@
-import {HardhatUserConfig} from 'hardhat/types';
+import { HardhatUserConfig } from 'hardhat/types';
 import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
 
@@ -9,7 +9,8 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: 0,
     tokenOwner: 1,
-    user0:2,
+    user0: 2,
+    user1: 3
   },
 };
 export default config;

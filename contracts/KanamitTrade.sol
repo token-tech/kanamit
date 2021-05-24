@@ -107,9 +107,9 @@ contract KanamitTrade is Ownable {
         mapping(uint256 => Bid) mapReqIdBid; //map<reqId, Bid>
     }
 
-    uint256 private _auctionId; //当前拍卖ID；
+    uint256 private _nextAuctionId; //下一个可用的拍卖ID；
     mapping(uint256 => AuctionInfo) private mapAuctionInfo; //map<auctionId, auctionInfo>
-    mapping(uint256 => uint256) private mapUriAuctionId; //map<hashUri, AuctionId>    
+    mapping(uint256 => uint256) private mapUriAuctionId; //map<hashUri, AuctionId>
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event Transfer(address indexed src, address indexed dst, uint256 wad);
@@ -122,23 +122,22 @@ contract KanamitTrade is Ownable {
 
     constructor(address _kCore) public {
         kCore = _kCore;
-        _auctionId = 1; //初始化为1； 0值无效； 后续map查询，当auctionId为0，视为无效auctionId
+        _nextAuctionId = 1; //初始化为1； 0值无效； 后续map查询，当auctionId为0，视为无效auctionId
     }
 
-    function _getCurrAuctionId() public view returns (uint256) {
-        return _auctionId;
+    function _getNextAuctionId() public view returns (uint256) {
+        return _nextAuctionId;
     }
 
-    //@brief 获取当前最大可用的auctionID，并使_auctionId+1
-    function _nextAuctionId() public returns (uint256) {
-        return _auctionId++;
+    //@brief 获取当前最大可用的auctionID，并使_nextAuctionId+1
+    function _IncreaseNextAuctionId() public returns (uint256) {
+        return _nextAuctionId++;
     }
 
     function bid(
         uint256 reqId,
         string memory uri,
-        address addressBidder,
-        uint256 amount
+        address addressBidder
     )
         public
         payable
@@ -148,6 +147,9 @@ contract KanamitTrade is Ownable {
             uint256 retBidId
         )
     {
+        uint256 amount = msg.value;
+        require(addressBidder != address(0), "bad bidder address");
+
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
         uint256 currAuctionId = mapUriAuctionId[hashUri];
         bool bNewAuction = false;
@@ -159,12 +161,12 @@ contract KanamitTrade is Ownable {
         } else {
             //判断当前拍卖信息，如果是已关闭，则需要新增拍卖信息
             uint256 status = mapAuctionInfo[currAuctionId].status;
-            if (1 == status) bNewAuction = true;  //旧的拍卖已关闭；需要新增拍卖
+            if (1 == status) bNewAuction = true; //旧的拍卖已关闭；需要新增拍卖
         }
 
         //新增拍卖
-        if (true == bNewAuction) {            
-            currAuctionId = _nextAuctionId();
+        if (true == bNewAuction) {
+            currAuctionId = _IncreaseNextAuctionId();
             mapUriAuctionId[hashUri] = currAuctionId;
         }
 
@@ -183,7 +185,7 @@ contract KanamitTrade is Ownable {
         mapAuctionInfo[currAuctionId].auctionId = currAuctionId;
         mapAuctionInfo[currAuctionId].hashUri = hashUri;
         mapAuctionInfo[currAuctionId].arrReqId.push(reqId);
-        uint256 bidId = mapAuctionInfo[currAuctionId].arrReqId.length -1;
+        uint256 bidId = mapAuctionInfo[currAuctionId].arrReqId.length - 1;
 
         mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].bidId = bidId;
         mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].reqId = reqId;
@@ -191,13 +193,72 @@ contract KanamitTrade is Ownable {
         mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].amount = amount;
         mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].cancel = false;
 
-
-        balanceOf[msg.sender] += msg.value;
-        emit EventBid(msg.sender, msg.value);
+        balanceOf[addressBidder] += msg.value;
+        emit EventBid(addressBidder, msg.value);
 
         retReqId = reqId;
         retAuctionId = currAuctionId;
         retBidId = bidId;
+    }
+
+    //@param uri
+    //@param auctionId; 0，当前的拍卖; 非0，指定auctionId的拍卖
+    function getBids(string memory uri, uint256 inputAuction)
+        public
+        view
+        returns (
+            uint256 auctionId,
+            uint256 totalBids,
+            uint256[] memory bidIds,
+            uint256[] memory reqIds,
+            address[] memory addressBidders,
+            uint256[] memory amounts,
+            bool[] memory cancels
+        )
+    {
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        uint256 currAuctinId = inputAuction;
+
+        //当前拍卖ID
+        if (inputAuction == 0) {
+            currAuctinId = mapUriAuctionId[hashUri];
+        }
+
+        auctionId = currAuctinId;
+        totalBids = 0;
+
+        if (currAuctinId > 0) {
+            totalBids = mapAuctionInfo[currAuctinId].arrReqId.length;
+        }
+
+        uint256[] memory retBidIds = new uint256[](totalBids);
+        uint256[] memory retReqIds = new uint256[](totalBids);
+        address[] memory retAddressBidders = new address[](totalBids);
+        uint256[] memory retAmounts = new uint256[](totalBids);
+        bool[] memory retCancel = new bool[](totalBids);
+
+        for (uint256 i = 0; i < totalBids; i++) {
+            uint256 currReqId = mapAuctionInfo[currAuctinId].arrReqId[i];
+
+            retBidIds[i] = mapAuctionInfo[currAuctinId].mapReqIdBid[currReqId]
+                .bidId;
+            retReqIds[i] = mapAuctionInfo[currAuctinId].mapReqIdBid[currReqId]
+                .reqId;
+            retAddressBidders[i] = mapAuctionInfo[currAuctinId].mapReqIdBid[
+                currReqId
+            ]
+                .bidder;
+            retAmounts[i] = mapAuctionInfo[currAuctinId].mapReqIdBid[currReqId]
+                .amount;
+            retCancel[i] = mapAuctionInfo[currAuctinId].mapReqIdBid[currReqId]
+                .cancel;
+        }
+
+        bidIds = retBidIds;
+        reqIds = retReqIds;
+        addressBidders = retAddressBidders;
+        amounts = retAmounts;
+        cancels = retCancel;
     }
 
     function coreAddress() public view returns (address) {
