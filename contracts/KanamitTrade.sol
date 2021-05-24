@@ -147,22 +147,18 @@ contract KanamitTrade is Ownable {
             uint256 retBidId
         )
     {
-        uint256 amount = msg.value;
         require(addressBidder != address(0), "bad bidder address");
 
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
-        uint256 currAuctionId = mapUriAuctionId[hashUri];
+        uint256 amount = msg.value;
+        (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);        
         bool bNewAuction = false;
 
-        //是否需要新增拍卖
-        if (0 == currAuctionId) {
-            //uri之前没有拍卖过，新增拍卖信息
+        //新增拍卖
+        //  uri之前没有拍卖过，或者当前的拍卖已经关闭，需要新增拍卖
+        if (0 == currAuctionId || 1 == status) {            
             bNewAuction = true;
-        } else {
-            //判断当前拍卖信息，如果是已关闭，则需要新增拍卖信息
-            uint256 status = mapAuctionInfo[currAuctionId].status;
-            if (1 == status) bNewAuction = true; //旧的拍卖已关闭；需要新增拍卖
-        }
+        }        
 
         //新增拍卖
         if (true == bNewAuction) {
@@ -259,6 +255,24 @@ contract KanamitTrade is Ownable {
         addressBidders = retAddressBidders;
         amounts = retAmounts;
         cancels = retCancel;
+    }
+
+    //@param uri
+    //@param auctionId; 0，当前的拍卖; 非0，指定auctionId的拍卖
+    // function accept(string memory uri) public {}
+
+    //@return auctionId，拍卖ID；0， 表示拍卖不存在；非0，有效的拍卖ID
+    //@return status，拍卖状态；0，拍卖中； 1， 拍卖已关闭；
+    function getAuctionStatus(string memory uri)
+        public
+        view
+        returns (uint256 auctionId, uint256 status)
+    {
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        auctionId = mapUriAuctionId[hashUri];
+
+        status = 0;
+        if (auctionId > 0) status = mapAuctionInfo[auctionId].status;
     }
 
     function coreAddress() public view returns (address) {

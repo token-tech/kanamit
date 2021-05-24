@@ -225,9 +225,22 @@ describe("total supply", function () {
       printArrayAddress(result.addressBidders, "addressBidders");
       printArrayEther(result.amounts, "amounts");
       printArrayRaw(result.cancels, "cancels");
-
     });
 
+    //-------------------getAuctionStatus------------    
+    await KanamitTrade.getAuctionStatus(uri).then(function (result) {
+      console.log('result', result);
+
+      //uri拍卖已存在，auctionId不能为0
+      expect(result.auctionId).not.to.equal(0); 
+    });
+
+    await KanamitTrade.getAuctionStatus("https://foo.bar.org").then(function (result) {
+      console.log('result', result);
+
+      //uri拍卖不存在，auctionId为0
+      expect(result.auctionId).to.equal(0);
+    });
   });
 
 });
