@@ -2,7 +2,9 @@ import { expect } from "./chai-setup";
 
 import { ethers, deployments, getNamedAccounts } from 'hardhat';
 
-describe("total supply", function () {
+describe("=======================================k-trade MISC测试===========================", function () {
+
+
   it("total supply测试", async function () {
     await deployments.fixture(["KanamitTrade"]);
     const { tokenOwner, user0 } = await getNamedAccounts();
@@ -16,6 +18,30 @@ describe("total supply", function () {
     expect(ownerBalance).to.equal(supply);
   });
 
+
+  it("owner权限测试", async function () {
+    const [owner, user0, user1, user2] = await ethers.getSigners();
+
+    const ftryKCore = await ethers.getContractFactory("KanamitCore");
+    const KanamitCore = await ftryKCore.deploy();
+    await KanamitCore.deployed();
+
+    const ftryKTrade = await ethers.getContractFactory("KanamitTrade");
+    const KanamitTrade = await ftryKTrade.deploy(KanamitCore.address);
+    await KanamitTrade.deployed();
+
+    //0值地址校验；放开以下注释，会触发合约的0值地址校验，报错
+    // await KanamitTrade.setCoreAddress(ethers.constants.AddressZero);
+
+    //owner权限测试
+    await KanamitTrade.setCoreAddress(KanamitCore.address);
+
+    //owner权限测试；放开以下注释，会触发合约的owner校验，报错
+    // await KanamitTrade.connect(user0).setCoreAddress(KanamitCore.address);
+
+  });
+
+  
   it("内置core合约调用测试", async function () {
     await deployments.fixture(["KanamitTrade"]);
     const { deployer, tokenOwner, user0, user1 } = await getNamedAccounts();
@@ -74,10 +100,17 @@ describe("total supply", function () {
   });
 
   it("转币测试", async function () {
-    await deployments.fixture(["KanamitTrade"]);
-    const { tokenOwner, deployer, user0, user1 } = await getNamedAccounts();
-    const KanamitTrade = await ethers.getContract("KanamitTrade");
-    let ownerBalance = await KanamitTrade.balanceOf(tokenOwner);
+    const [deployer, user0, user1, user2] = await ethers.getSigners();
+
+    const ftryKCore = await ethers.getContractFactory("KanamitCore");
+    const KanamitCore = await ftryKCore.deploy();
+    await KanamitCore.deployed();
+
+    const ftryKTrade = await ethers.getContractFactory("KanamitTrade");
+    const KanamitTrade = await ftryKTrade.deploy(KanamitCore.address);
+    await KanamitTrade.deployed();
+
+    let ownerBalance = await KanamitTrade.balanceOf(deployer.getAddress());
     let supply = await KanamitTrade.totalSupply();
 
     console.log('ownerBalance', ownerBalance.toNumber());
@@ -86,40 +119,69 @@ describe("total supply", function () {
     expect(ownerBalance).to.equal(supply);
 
     //deposit
-    KanamitTrade.deposit({ value: ethers.utils.parseEther("1.2345678") });
+    KanamitTrade.deposit({ value: ethers.utils.parseEther("11.2") });
 
-    const user0Balance = await KanamitTrade.balanceOf(user0);
-    console.log('ktm-user0Balance', user0Balance.toNumber());
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (deployer_Balance) {
+      console.log('ktm_deployer_Balance', ethers.utils.formatEther(deployer_Balance));
+      expect("11.2").to.equal(ethers.utils.formatEther(deployer_Balance));
+    });
 
-    ownerBalance = await KanamitTrade.balanceOf(tokenOwner);
-    console.log('ktm-ownerBalance', ownerBalance.toNumber());
-
-    await KanamitTrade.balanceOf(deployer).then(function (deployerBalance) {
-      console.log('ktm-deployerBalance', ethers.utils.formatEther(deployerBalance));
+    await KanamitTrade.balanceOf(user0.getAddress()).then(function (user0_Balance) {
+      console.log('ktm_user0_Balance', ethers.utils.formatEther(user0_Balance));
+      expect("0.0").to.equal(ethers.utils.formatEther(user0_Balance));
     });
 
     await KanamitTrade.totalSupply().then(function (supply) {
-      console.log('ktm-supply', ethers.utils.formatEther(supply));
+      console.log('ktm_supply', ethers.utils.formatEther(supply));
+      expect("11.2").to.equal(ethers.utils.formatEther(supply));
     });
 
+    await ethers.provider.getBalance(deployer.getAddress()).then(function (deployer_Balance) {
+      console.log('eth_deployer_Balance', ethers.utils.formatEther(deployer_Balance));
+    });;
 
-    await ethers.provider.getBalance(deployer).then(function (deployerBalance) {
-      console.log('eth-DeployerBalance', ethers.utils.formatEther(deployerBalance));
+    //deposit
+    KanamitTrade.connect(user0).deposit({ value: ethers.utils.parseEther("22.3") });
+
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (deployer_Balance) {
+      console.log('ktm_deployer_Balance', ethers.utils.formatEther(deployer_Balance));
+      expect("11.2").to.equal(ethers.utils.formatEther(deployer_Balance));
+    });
+
+    await KanamitTrade.balanceOf(user0.getAddress()).then(function (user0_Balance) {
+      console.log('ktm_user0_Balance', ethers.utils.formatEther(user0_Balance));
+      expect("22.3").to.equal(ethers.utils.formatEther(user0_Balance));
+    });
+
+    await KanamitTrade.totalSupply().then(function (supply) {
+      console.log('ktm_supply', ethers.utils.formatEther(supply));
+      expect("33.5").to.equal(ethers.utils.formatEther(supply));
+    });
+
+    await ethers.provider.getBalance(deployer.getAddress()).then(function (deployer_Balance) {
+      console.log('eth_deployer_Balance', ethers.utils.formatEther(deployer_Balance));
     });;
 
     //withdraw
-    KanamitTrade.withdraw(ethers.utils.parseEther("0.2"));
+    KanamitTrade.connect(user0).withdraw(ethers.utils.parseEther("0.2"));
 
-    await KanamitTrade.balanceOf(deployer).then(function (deployerBalance) {
-      console.log('ktm-deployerBalance', ethers.utils.formatEther(deployerBalance));
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (deployer_Balance) {
+      console.log('ktm_deployer_Balance', ethers.utils.formatEther(deployer_Balance));
+      expect("11.2").to.equal(ethers.utils.formatEther(deployer_Balance));
+    });
+
+    await KanamitTrade.balanceOf(user0.getAddress()).then(function (user0_Balance) {
+      console.log('ktm_user0_Balance', ethers.utils.formatEther(user0_Balance));
+      expect("22.1").to.equal(ethers.utils.formatEther(user0_Balance));
     });
 
     await KanamitTrade.totalSupply().then(function (supply) {
-      console.log('ktm-supply', ethers.utils.formatEther(supply));
+      console.log('ktm_supply', ethers.utils.formatEther(supply));
+      expect("33.3").to.equal(ethers.utils.formatEther(supply));
     });
 
-    await ethers.provider.getBalance(deployer).then(function (deployerBalance) {
-      console.log('eth-DeployerBalance', ethers.utils.formatEther(deployerBalance));
+    await ethers.provider.getBalance(deployer.getAddress()).then(function (deployer_Balance) {
+      console.log('eth_deployer_Balance', ethers.utils.formatEther(deployer_Balance));
     });;
   });
 
@@ -142,23 +204,23 @@ describe("total supply", function () {
     await KanamitTrade.bid(reqId, uri, user0, { value: ethers.utils.parseEther("12") });
 
     await KanamitTrade.balanceOf(user0).then(function (user0Balance) {
-      console.log('ktm-user0-Balance', ethers.utils.formatEther(user0Balance));
+      console.log('ktm_user0-Balance', ethers.utils.formatEther(user0Balance));
     });
 
     await KanamitTrade.balanceOf(tokenOwner).then(function (ownerBalance) {
-      console.log('ktm-owner-Balance', ethers.utils.formatEther(ownerBalance));
+      console.log('ktm_owner-Balance', ethers.utils.formatEther(ownerBalance));
     });
 
     await KanamitTrade.balanceOf(deployer).then(function (deployerBalance) {
-      console.log('ktm-deployer-Balance', ethers.utils.formatEther(deployerBalance));
+      console.log('ktm_deployer-Balance', ethers.utils.formatEther(deployerBalance));
     });
 
     await KanamitTrade.totalSupply().then(function (supply) {
-      console.log('ktm-supply', ethers.utils.formatEther(supply));
+      console.log('ktm_supply', ethers.utils.formatEther(supply));
     });
 
     await ethers.provider.getBalance(deployer).then(function (deployerBalance) {
-      console.log('eth-Deployer-Balance', ethers.utils.formatEther(deployerBalance));
+      console.log('eth_Deployer-Balance', ethers.utils.formatEther(deployerBalance));
     });;
 
 
@@ -167,23 +229,23 @@ describe("total supply", function () {
     await KanamitTrade.bid(reqId, uri, user1, { value: ethers.utils.parseEther("13") });
 
     await KanamitTrade.balanceOf(user1).then(function (user1Balance) {
-      console.log('ktm-user1-Balance', ethers.utils.formatEther(user1Balance));
+      console.log('ktm_user1-Balance', ethers.utils.formatEther(user1Balance));
     });
 
     await KanamitTrade.balanceOf(tokenOwner).then(function (ownerBalance) {
-      console.log('ktm-owner-Balance', ethers.utils.formatEther(ownerBalance));
+      console.log('ktm_owner-Balance', ethers.utils.formatEther(ownerBalance));
     });
 
     await KanamitTrade.balanceOf(deployer).then(function (deployerBalance) {
-      console.log('ktm-deployer-Balance', ethers.utils.formatEther(deployerBalance));
+      console.log('ktm_deployer-Balance', ethers.utils.formatEther(deployerBalance));
     });
 
     await KanamitTrade.totalSupply().then(function (supply) {
-      console.log('ktm-supply', ethers.utils.formatEther(supply));
+      console.log('ktm_supply', ethers.utils.formatEther(supply));
     });
 
     await ethers.provider.getBalance(deployer).then(function (deployerBalance) {
-      console.log('eth-Deployer-Balance', ethers.utils.formatEther(deployerBalance));
+      console.log('eth_Deployer-Balance', ethers.utils.formatEther(deployerBalance));
     });;
 
     //-------------------getBids------------    
