@@ -208,31 +208,55 @@ describe("=======================================k-trade MISC测试=============
 
 
   it("拍卖测试", async function () {
-    await deployments.fixture(["KanamitTrade"]);
-    const { tokenOwner, deployer, user0, user1 } = await getNamedAccounts();
-    const KanamitTrade = await ethers.getContract("KanamitTrade");
-    let ownerBalance = await KanamitTrade.balanceOf(tokenOwner);
-    let supply = await KanamitTrade.totalSupply();
+    const [deployer, user0, user1, user2] = await ethers.getSigners();
 
-    console.log('ownerBalance', ownerBalance.toNumber());
-    console.log('supply', supply.toNumber());
+    const ftryKCore = await ethers.getContractFactory("KanamitCore");
+    const KanamitCore = await ftryKCore.deploy();
+    await KanamitCore.deployed();
 
-    expect(ownerBalance).to.equal(supply);
+    const ftryKTrade = await ethers.getContractFactory("KanamitTrade");
+    const KanamitTrade = await ftryKTrade.deploy(KanamitCore.address);
+    await KanamitTrade.deployed();
+
+    // await deployments.fixture(["KanamitTrade"]);
+    // const { tokenOwner, deployer, user0, user1 } = await getNamedAccounts();
+    // const KanamitTrade = await ethers.getContract("KanamitTrade");
+    // let ownerBalance = await KanamitTrade.balanceOf(tokenOwner);
+    // let supply = await KanamitTrade.totalSupply();
+
+    // console.log('ownerBalance', ownerBalance.toNumber());
+    // console.log('supply', supply.toNumber());
+
+    // expect(ownerBalance).to.equal(supply);
+
+    //直接转移owner
+    //  k-core直接转移owner；从创建地址，转到k-trade合约
+    console.log('k-core owner', await KanamitCore.owner());
+    expect(await KanamitCore.owner()).to.equal(await deployer.getAddress());
+
+    await KanamitCore.connect(deployer).transferOwnership(KanamitTrade.address);
+
+    //-------------------mint -------------
+    let uri = "https://twitter.com/zhoushx1018/status/1385995589117124614"
+    await KanamitTrade.coreCreateAsset(user0.getAddress(), uri);
+
+    let assertId = await KanamitTrade.coreGetAssetId(uri);
+    console.log('assertId', assertId.toNumber());
+
 
     //-------------------bid 1-------------
     let reqId = 1001;
-    let uri = "https://twitter.com/zhoushx1018/status/1385995589117124614"
-    await KanamitTrade.bid(reqId, uri, user0, { value: ethers.utils.parseEther("12") });
+    await KanamitTrade.bid(reqId, uri, user0.getAddress(), { value: ethers.utils.parseEther("12") });
 
-    await KanamitTrade.balanceOf(user0).then(function (user0Balance) {
+    await KanamitTrade.balanceOf(user0.getAddress()).then(function (user0Balance) {
       console.log('ktm_user0-Balance', ethers.utils.formatEther(user0Balance));
     });
 
-    await KanamitTrade.balanceOf(tokenOwner).then(function (ownerBalance) {
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (ownerBalance) {
       console.log('ktm_owner-Balance', ethers.utils.formatEther(ownerBalance));
     });
 
-    await KanamitTrade.balanceOf(deployer).then(function (deployerBalance) {
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (deployerBalance) {
       console.log('ktm_deployer-Balance', ethers.utils.formatEther(deployerBalance));
     });
 
@@ -240,24 +264,24 @@ describe("=======================================k-trade MISC测试=============
       console.log('ktm_supply', ethers.utils.formatEther(supply));
     });
 
-    await ethers.provider.getBalance(deployer).then(function (deployerBalance) {
+    await ethers.provider.getBalance(deployer.getAddress()).then(function (deployerBalance) {
       console.log('eth_Deployer-Balance', ethers.utils.formatEther(deployerBalance));
     });;
 
 
-    //-------------------bid 2------------
+    // //-------------------bid 2------------
     reqId++;
-    await KanamitTrade.bid(reqId, uri, user1, { value: ethers.utils.parseEther("13") });
+    await KanamitTrade.bid(reqId, uri, user1.getAddress(), { value: ethers.utils.parseEther("13") });
 
-    await KanamitTrade.balanceOf(user1).then(function (user1Balance) {
+    await KanamitTrade.balanceOf(user1.getAddress()).then(function (user1Balance) {
       console.log('ktm_user1-Balance', ethers.utils.formatEther(user1Balance));
     });
 
-    await KanamitTrade.balanceOf(tokenOwner).then(function (ownerBalance) {
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (ownerBalance) {
       console.log('ktm_owner-Balance', ethers.utils.formatEther(ownerBalance));
     });
 
-    await KanamitTrade.balanceOf(deployer).then(function (deployerBalance) {
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (deployerBalance) {
       console.log('ktm_deployer-Balance', ethers.utils.formatEther(deployerBalance));
     });
 
@@ -265,7 +289,7 @@ describe("=======================================k-trade MISC测试=============
       console.log('ktm_supply', ethers.utils.formatEther(supply));
     });
 
-    await ethers.provider.getBalance(deployer).then(function (deployerBalance) {
+    await ethers.provider.getBalance(deployer.getAddress()).then(function (deployerBalance) {
       console.log('eth_Deployer-Balance', ethers.utils.formatEther(deployerBalance));
     });;
 
@@ -328,6 +352,8 @@ describe("=======================================k-trade MISC测试=============
     await KanamitTrade.accept(uri).then(function (result) {
     });
 
+    //uri判断
+    //  以下注释打开会报错，因为 uri没有mint过
     // await KanamitTrade.accept("https://foo.bar.org").then(function (result) {
     // });
 
