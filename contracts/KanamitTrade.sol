@@ -73,6 +73,15 @@ contract Ownable is Context {
 interface IKanamitCore {
     function transferOwnership(address newOwner) external;
 
+    function transfer(address _to, uint256 _tokenId) external;
+
+    function owner() external view returns (address);
+
+    function getUriOwner(string memory uri)
+        external
+        view
+        returns (address addressOwner);
+
     function totalSupply() external view returns (uint256);
 
     function createAsset(address _owner, string memory _uri)
@@ -123,7 +132,7 @@ contract KanamitTrade is Ownable {
     event Deposit(address indexed dst, uint256 wad);
     event EventBid(address indexed dst, uint256 wad);
     event Withdrawal(address indexed src, uint256 wad);
-    // event EventAccept(address indexed dst, uint256 aid);
+    event EventAccept(address indexed winner, uint256 amount, bool success);
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -158,8 +167,8 @@ contract KanamitTrade is Ownable {
         require(addressBidder != address(0), "bad bidder address");
 
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
-        uint256 assertId = IKanamitCore(kCore).getAssetId(uri);
-        require(assertId != 0, "uri must be mint, first of all");
+        uint256 assetId = IKanamitCore(kCore).getAssetId(uri);
+        require(assetId != 0, "uri must be mint, first of all");
 
         uint256 amount = msg.value;
         (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);
@@ -276,9 +285,25 @@ contract KanamitTrade is Ownable {
         if (auctionId > 0) status = mapAuctionInfo[auctionId].status;
     }
 
-    function accept(string memory uri) public {
-        // uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+    function coreGetUriOwner(string memory uri)
+        external
+        view
+        returns (address addressOwner)
+    {
+        return IKanamitCore(kCore).getUriOwner(uri);
+    }
+
+    function accept(string memory uri, uint256 amount)
+        public
+        returns (bool success)
+    {
+        success = false;
         (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);
+        // uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        require(
+            msg.sender == this.coreGetUriOwner(uri),
+            "only uriOwner can accept"
+        );
 
         require(
             currAuctionId != 0,
@@ -286,7 +311,47 @@ contract KanamitTrade is Ownable {
         );
         require(status != 1, "auction is close");
 
-        //emit EventAccept();
+        (
+            uint256 auctionId,
+            uint256 totalBids,
+            uint256[] memory bidIds,
+            uint256[] memory reqIds,
+            address[] memory addressBidders,
+            uint256[] memory amounts,
+            bool[] memory cancels
+        ) = getBids(uri, currAuctionId);
+        require(bidIds.length == totalBids, "array element error");
+        require(reqIds.length == totalBids, "array element error");
+        require(addressBidders.length == totalBids, "array element error");
+        require(amounts.length == totalBids, "array element error");
+        require(cancels.length == totalBids, "array element error");
+
+        uint256 iIndexWinner = 0;
+        for (uint256 i = 0; i < totalBids; i++) {
+            if (true == cancels[i]) continue; //忽略已撤销的
+
+            if (amount == amounts[i]) {
+                success = true;
+                iIndexWinner = i;
+            }
+        }
+
+        if (true == success) {
+            _transerUriOwner(uri, addressBidders[iIndexWinner]);
+        }
+
+        emit EventAccept(addressBidders[iIndexWinner], amounts[2], success);
+
+        return false;
+    }
+
+    function _transerUriOwner(string memory uri, address addressBidder)
+        internal
+    {
+        uint256 assetId = this.coreGetAssetId(uri);
+        require(assetId != 0, "assetId error");
+
+        // IKanamitCore(kCore).transfer(addressBidder, assetId);
     }
 
     function coreAddress() public view returns (address) {

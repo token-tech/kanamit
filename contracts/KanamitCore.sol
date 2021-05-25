@@ -169,7 +169,7 @@ contract KanamitCore is IERC721, Ownable {
     {
         uint256 hashUri = uint256(keccak256(abi.encodePacked(_uri)));
         uint256 assetId = getAssetId(_uri);
-        address currOwner = getOwner(_uri);
+        address currOwner = getUriOwner(_uri);
 
         require(currOwner == address(0), 'asset already mint, found by owner');
         require(assetId == 0, 'asset already mint, found by assetId');
@@ -230,7 +230,7 @@ contract KanamitCore is IERC721, Ownable {
         assetId = mapUriAssetId[hashUri];
     }
 
-    function getOwner(string memory uri)
+    function getUriOwner(string memory uri)
         public
         view
         returns (address addressOwner)

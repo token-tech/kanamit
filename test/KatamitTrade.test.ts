@@ -56,7 +56,7 @@ describe("=======================================k-trade MISC测试=============
 
     //地址列表
     console.log('KanamitCore', KanamitCore.address, 'KanamitTrade', KanamitTrade.address);
-    console.log('deployer', await deployer.getAddress(), 'user0', await user0.getAddress(), 'user1', await user1.getAddress());
+    console.log('deployer', await deployer.getAddress(), 'user0', await user0.getAddress(), 'user1', await user1.getAddress(), 'user2', await user2.getAddress());
 
     await KanamitTrade.coreAddress().then(function (coreAddress) {
       console.log('coreAddress', coreAddress);
@@ -218,17 +218,6 @@ describe("=======================================k-trade MISC测试=============
     const KanamitTrade = await ftryKTrade.deploy(KanamitCore.address);
     await KanamitTrade.deployed();
 
-    // await deployments.fixture(["KanamitTrade"]);
-    // const { tokenOwner, deployer, user0, user1 } = await getNamedAccounts();
-    // const KanamitTrade = await ethers.getContract("KanamitTrade");
-    // let ownerBalance = await KanamitTrade.balanceOf(tokenOwner);
-    // let supply = await KanamitTrade.totalSupply();
-
-    // console.log('ownerBalance', ownerBalance.toNumber());
-    // console.log('supply', supply.toNumber());
-
-    // expect(ownerBalance).to.equal(supply);
-
     //直接转移owner
     //  k-core直接转移owner；从创建地址，转到k-trade合约
     console.log('k-core owner', await KanamitCore.owner());
@@ -248,16 +237,16 @@ describe("=======================================k-trade MISC测试=============
     let reqId = 1001;
     await KanamitTrade.bid(reqId, uri, user0.getAddress(), { value: ethers.utils.parseEther("12") });
 
-    await KanamitTrade.balanceOf(user0.getAddress()).then(function (user0Balance) {
-      console.log('ktm_user0-Balance', ethers.utils.formatEther(user0Balance));
+    await KanamitTrade.balanceOf(user0.getAddress()).then(function (user0_Balance) {
+      console.log('ktm_user0_Balance', ethers.utils.formatEther(user0_Balance));
     });
 
     await KanamitTrade.balanceOf(deployer.getAddress()).then(function (ownerBalance) {
-      console.log('ktm_owner-Balance', ethers.utils.formatEther(ownerBalance));
+      console.log('ktm_owner_Balance', ethers.utils.formatEther(ownerBalance));
     });
 
     await KanamitTrade.balanceOf(deployer.getAddress()).then(function (deployerBalance) {
-      console.log('ktm_deployer-Balance', ethers.utils.formatEther(deployerBalance));
+      console.log('ktm_deployer_Balance', ethers.utils.formatEther(deployerBalance));
     });
 
     await KanamitTrade.totalSupply().then(function (supply) {
@@ -265,7 +254,7 @@ describe("=======================================k-trade MISC测试=============
     });
 
     await ethers.provider.getBalance(deployer.getAddress()).then(function (deployerBalance) {
-      console.log('eth_Deployer-Balance', ethers.utils.formatEther(deployerBalance));
+      console.log('eth_Deployer_Balance', ethers.utils.formatEther(deployerBalance));
     });;
 
 
@@ -273,16 +262,16 @@ describe("=======================================k-trade MISC测试=============
     reqId++;
     await KanamitTrade.bid(reqId, uri, user1.getAddress(), { value: ethers.utils.parseEther("13") });
 
-    await KanamitTrade.balanceOf(user1.getAddress()).then(function (user1Balance) {
-      console.log('ktm_user1-Balance', ethers.utils.formatEther(user1Balance));
+    await KanamitTrade.balanceOf(user1.getAddress()).then(function (user1_Balance) {
+      console.log('ktm_user1_Balance', ethers.utils.formatEther(user1_Balance));
     });
 
     await KanamitTrade.balanceOf(deployer.getAddress()).then(function (ownerBalance) {
-      console.log('ktm_owner-Balance', ethers.utils.formatEther(ownerBalance));
+      console.log('ktm_owner_Balance', ethers.utils.formatEther(ownerBalance));
     });
 
     await KanamitTrade.balanceOf(deployer.getAddress()).then(function (deployerBalance) {
-      console.log('ktm_deployer-Balance', ethers.utils.formatEther(deployerBalance));
+      console.log('ktm_deployer_Balance', ethers.utils.formatEther(deployerBalance));
     });
 
     await KanamitTrade.totalSupply().then(function (supply) {
@@ -290,7 +279,32 @@ describe("=======================================k-trade MISC测试=============
     });
 
     await ethers.provider.getBalance(deployer.getAddress()).then(function (deployerBalance) {
-      console.log('eth_Deployer-Balance', ethers.utils.formatEther(deployerBalance));
+      console.log('eth_Deployer_Balance', ethers.utils.formatEther(deployerBalance));
+    });;
+
+
+    // //-------------------bid 3------------
+    reqId++;
+    await KanamitTrade.bid(reqId, uri, user2.getAddress(), { value: ethers.utils.parseEther("15") });
+
+    await KanamitTrade.balanceOf(user2.getAddress()).then(function (user2_Balance) {
+      console.log('ktm_user2_Balance', ethers.utils.formatEther(user2_Balance));
+    });
+
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (ownerBalance) {
+      console.log('ktm_owner_Balance', ethers.utils.formatEther(ownerBalance));
+    });
+
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (deployerBalance) {
+      console.log('ktm_deployer_Balance', ethers.utils.formatEther(deployerBalance));
+    });
+
+    await KanamitTrade.totalSupply().then(function (supply) {
+      console.log('ktm_supply', ethers.utils.formatEther(supply));
+    });
+
+    await ethers.provider.getBalance(deployer.getAddress()).then(function (deployerBalance) {
+      console.log('eth_Deployer_Balance', ethers.utils.formatEther(deployerBalance));
     });;
 
     //-------------------getBids------------    
@@ -336,26 +350,68 @@ describe("=======================================k-trade MISC测试=============
 
     //-------------------getAuctionStatus------------    
     await KanamitTrade.getAuctionStatus(uri).then(function (result) {
-      console.log('result', result);
+      // console.log('result', result);
 
       //uri拍卖已存在，auctionId不能为0
       expect(result.auctionId).not.to.equal(0);
     });
 
     await KanamitTrade.getAuctionStatus("https://foo.bar.org").then(function (result) {
-      console.log('result', result);
+      // console.log('result', result);
 
       //uri拍卖不存在，auctionId为0
       expect(result.auctionId).to.equal(0);
-    });
-
-    await KanamitTrade.accept(uri).then(function (result) {
     });
 
     //uri判断
     //  以下注释打开会报错，因为 uri没有mint过
     // await KanamitTrade.accept("https://foo.bar.org").then(function (result) {
     // });
+
+    //owner判断
+    //  以下注释打开会报错，因为 owner不是 k-trade合约地址
+    // await KanamitTrade.accept(uri, 100).then(function (result) {
+    // });
+
+    //创建事件
+    let prmAccept = new Promise((resolve, reject) => {
+      KanamitTrade.on('EventAccept', (winner, amount, success) => {
+
+        resolve({
+          winner: winner,
+          amount: amount,
+          success: success
+        });
+      });
+
+      setTimeout(() => {
+        reject(new Error('timeout'));
+      }, 600000)
+    });
+
+
+
+    await KanamitTrade.coreGetUriOwner(uri).then(function (addressOwner) {
+      console.log("addressOwner", addressOwner);
+    });
+
+    await KanamitTrade.connect(user0).accept(uri, ethers.utils.parseEther("15")).then(function (result) {
+    });
+
+    let eventAccept = await prmAccept;
+    // console.log("eventAccept", eventAccept);
+    console.log("winner", eventAccept["winner"]);
+    console.log("amount", eventAccept["amount"]);
+    console.log("success", eventAccept["success"]);
+
+    let amount = eventAccept["amount"];
+    console.log("amount", ethers.utils.formatEther(amount));
+
+    await KanamitTrade.coreGetUriOwner(uri).then(function (addressOwner) {
+      console.log("addressOwner", addressOwner);
+    });
+
+
 
   });
 
