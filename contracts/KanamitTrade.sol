@@ -79,6 +79,11 @@ interface IKanamitCore {
         external
         returns (uint256);
 
+    function getAssetId(string memory uri)
+        external
+        view
+        returns (uint256 assetId);
+
     function getAssetById(uint256 _id)
         external
         view
@@ -153,18 +158,15 @@ contract KanamitTrade is Ownable {
         require(addressBidder != address(0), "bad bidder address");
 
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        uint256 assertId = IKanamitCore(kCore).getAssetId(uri);
+        require(assertId != 0, "uri must be mint, first of all");
+
         uint256 amount = msg.value;
         (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);
-        bool bNewAuction = false;
 
         //新增拍卖
         //  uri之前没有拍卖过，或者当前的拍卖已经关闭，需要新增拍卖
         if (0 == currAuctionId || 1 == status) {
-            bNewAuction = true;
-        }
-
-        //新增拍卖
-        if (true == bNewAuction) {
             currAuctionId = _IncreaseNextAuctionId();
             mapUriAuctionId[hashUri] = currAuctionId;
         }
@@ -275,7 +277,7 @@ contract KanamitTrade is Ownable {
     }
 
     function accept(string memory uri) public {
-        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        // uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
         (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);
 
         require(
@@ -310,6 +312,10 @@ contract KanamitTrade is Ownable {
         returns (uint256)
     {
         return IKanamitCore(kCore).createAsset(_owner, _uri);
+    }
+
+    function coreGetAssetId(string memory uri) external view returns (uint256) {
+        return IKanamitCore(kCore).getAssetId(uri);
     }
 
     function coreGetAssetById(uint256 _id)
