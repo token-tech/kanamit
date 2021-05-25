@@ -4,10 +4,13 @@ import { ethers, deployments, getNamedAccounts } from 'hardhat';
 
 describe("=======================================k-core MISC测试===========================", function () {
   it("total supply相关测试", async function () {
-    await deployments.fixture(["KanamitCore"]);
-    const { tokenOwner } = await getNamedAccounts();
-    const kanamitCore = await ethers.getContract("KanamitCore");
-    const ownerBalance = await kanamitCore.balanceOf(tokenOwner);
+    const [deployer, user0, user1, user2] = await ethers.getSigners();
+
+    const ftryKCore = await ethers.getContractFactory("KanamitCore");
+    const kanamitCore = await ftryKCore.deploy();
+    await kanamitCore.deployed();
+    
+    const ownerBalance = await kanamitCore.balanceOf(deployer.getAddress());
     const supply = await kanamitCore.totalSupply();
 
     console.log('ownerBalance', ownerBalance.toNumber());
@@ -17,17 +20,17 @@ describe("=======================================k-core MISC测试==============
   });
 
   it("创建资产", async function () {
-    await deployments.fixture(["KanamitCore"]);
-    const { user0, tokenOwner } = await getNamedAccounts();
-    const kanamitCore = await ethers.getContract("KanamitCore");
 
-    let ownerBalance = await kanamitCore.balanceOf(tokenOwner);
-    let user0Balance = await kanamitCore.balanceOf(user0);
+    const [deployer, user0, user1, user2] = await ethers.getSigners();
+
+    const ftryKCore = await ethers.getContractFactory("KanamitCore");
+    const kanamitCore = await ftryKCore.deploy();
+    await kanamitCore.deployed();    
+
     let supply = await kanamitCore.totalSupply();
-    console.log('ownerBalance', ownerBalance.toNumber());
-    console.log('user0Balance', user0Balance.toNumber());
-    console.log('supply', supply.toNumber());
-
+    let ownerBalance = await kanamitCore.balanceOf(deployer.getAddress());
+    let user0Balance = await kanamitCore.balanceOf(user0.getAddress());
+    
     let iCount = supply.toNumber(); //assertId为0是默认初始化的，因此这里iCount为1
 
     //---------创建新的NFT--------------------------
@@ -48,14 +51,14 @@ describe("=======================================k-core MISC测试==============
     });
 
     let uri = "https://twitter.com/zhoushx1018/status/1385995589117124614";
-    let assetObject = await kanamitCore.createAsset(user0, uri);
+    let assetObject = await kanamitCore.createAsset(user0.getAddress(), uri);
     let eventCreate = await prmCreate;
     // console.log("eventCreate", eventCreate);
     console.log("AssetId", eventCreate["AssetId"].toNumber());
     console.log("assetHash", ethers.BigNumber.from(eventCreate["assetHash"]).toHexString());
 
-    ownerBalance = await kanamitCore.balanceOf(tokenOwner);
-    user0Balance = await kanamitCore.balanceOf(user0);
+    ownerBalance = await kanamitCore.balanceOf(deployer.getAddress());
+    user0Balance = await kanamitCore.balanceOf(user0.getAddress());
     supply = await kanamitCore.totalSupply();
 
     //NFT总量验证
@@ -72,7 +75,7 @@ describe("=======================================k-core MISC测试==============
     console.log("currAssetHash", ethers.BigNumber.from(currAssetHash).toHexString());
 
     //根据ownerAddress、assetHash查找NFT
-    await kanamitCore.getAsset(user0, currAssetHash).then(function (assetId) {
+    await kanamitCore.getAsset(user0.getAddress(), currAssetHash).then(function (assetId) {
       console.log("assetId", assetId);
       expect(currAssetHash).to.equal(eventCreate["assetHash"]);
     });
@@ -96,14 +99,14 @@ describe("=======================================k-core MISC测试==============
     });
 
     let uri1 = "https://twitter.com/zhoushx1018/status/1394366048300720130";
-    let nftId1 = await kanamitCore.createAsset(user0, uri1);
+    let nftId1 = await kanamitCore.createAsset(user0.getAddress(), uri1);
     eventCreate = await prmCreate;
     // console.log("eventCreate", eventCreate);
     console.log("AssetId", eventCreate["AssetId"].toNumber());
     console.log("assetHash", ethers.BigNumber.from(eventCreate["assetHash"]).toHexString());
 
-    ownerBalance = await kanamitCore.balanceOf(tokenOwner);
-    user0Balance = await kanamitCore.balanceOf(user0);
+    ownerBalance = await kanamitCore.balanceOf(deployer.getAddress());
+    user0Balance = await kanamitCore.balanceOf(user0.getAddress());
     supply = await kanamitCore.totalSupply();
 
     //NFT总量验证
@@ -120,7 +123,7 @@ describe("=======================================k-core MISC测试==============
     console.log("currAssetHash", ethers.BigNumber.from(currAssetHash).toHexString());
 
     //根据ownerAddress、assetHash查找NFT
-    await kanamitCore.getAsset(user0, currAssetHash).then(function (assetId) {
+    await kanamitCore.getAsset(user0.getAddress(), currAssetHash).then(function (assetId) {
       console.log("assetId", assetId);
       expect(iCount - 1).to.equal(assetId);
     });

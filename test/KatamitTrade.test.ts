@@ -6,10 +6,18 @@ describe("=======================================k-trade MISC测试=============
 
 
   it("total supply测试", async function () {
-    await deployments.fixture(["KanamitTrade"]);
-    const { tokenOwner, user0 } = await getNamedAccounts();
-    const KanamitTrade = await ethers.getContract("KanamitTrade");
-    const ownerBalance = await KanamitTrade.balanceOf(tokenOwner);
+
+    const [owner, user0, user1, user2] = await ethers.getSigners();
+
+    const ftryKCore = await ethers.getContractFactory("KanamitCore");
+    const KanamitCore = await ftryKCore.deploy();
+    await KanamitCore.deployed();
+
+    const ftryKTrade = await ethers.getContractFactory("KanamitTrade");
+    const KanamitTrade = await ftryKTrade.deploy(KanamitCore.address);
+    await KanamitTrade.deployed();
+
+    const ownerBalance = await KanamitTrade.balanceOf(owner.getAddress());
     const supply = await KanamitTrade.totalSupply();
 
     console.log('ownerBalance', ownerBalance.toNumber());
