@@ -2,7 +2,7 @@ import { expect } from "./chai-setup";
 
 import { ethers, deployments, getNamedAccounts } from 'hardhat';
 
-describe("total supply", function () {
+describe("=======================================k-core MISC测试===========================", function () {
   it("total supply相关测试", async function () {
     await deployments.fixture(["KanamitCore"]);
     const { tokenOwner } = await getNamedAccounts();
@@ -15,10 +15,7 @@ describe("total supply", function () {
 
     expect(ownerBalance + 1).to.equal(supply); //supply比 tokenOwner多了一个 assetId 0
   });
-});
 
-
-describe("create asset", function () {
   it("创建资产", async function () {
     await deployments.fixture(["KanamitCore"]);
     const { user0, tokenOwner } = await getNamedAccounts();
