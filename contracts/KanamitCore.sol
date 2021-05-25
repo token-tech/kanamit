@@ -275,7 +275,7 @@ contract KanamitCore is IERC721, Ownable {
         require(_to != address(this));
 
         // You can only send your own cat.
-        require(_owns(msg.sender, _tokenId));
+        require(_owns(msg.sender, _tokenId), 'only owner can transfer');
 
         // Reassign ownership, clear pending approvals, emit Transfer event.
         _transfer(msg.sender, _to, _tokenId);
