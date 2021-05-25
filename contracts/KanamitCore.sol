@@ -164,14 +164,15 @@ contract KanamitCore is IERC721, Ownable {
 
     function createAsset(address _owner, string memory _uri)
         public
+        onlyOwner()
         returns (uint256)
     {
         uint256 hashUri = uint256(keccak256(abi.encodePacked(_uri)));
-        uint256 assetId = getAssetId(_uri);         
+        uint256 assetId = getAssetId(_uri);
+        address currOwner = getOwner(_uri);
 
-        if (assetId != 0) {
-            return assetId;
-        }
+        require(currOwner == address(0), 'asset already mint, found by owner');
+        require(assetId == 0, 'asset already mint, found by assetId');
 
         Asset memory currAsset = Asset({hashUri: hashUri});
         assets.push(currAsset);

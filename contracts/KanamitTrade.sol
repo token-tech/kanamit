@@ -71,6 +71,8 @@ contract Ownable is Context {
 }
 
 interface IKanamitCore {
+    function transferOwnership(address newOwner) external;
+
     function totalSupply() external view returns (uint256);
 
     function createAsset(address _owner, string memory _uri)
@@ -276,7 +278,10 @@ contract KanamitTrade is Ownable {
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
         (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);
 
-        require(currAuctionId != 0, "no auction for uri. first of all, uri need a bid.");
+        require(
+            currAuctionId != 0,
+            "no auction for uri. first of all, uri need a bid."
+        );
         require(status != 1, "auction is close");
 
         //emit EventAccept();
@@ -291,12 +296,17 @@ contract KanamitTrade is Ownable {
         kCore = _kCore;
     }
 
+    function coreTransferOwnership(address newOwner) public onlyOwner() {
+        IKanamitCore(kCore).transferOwnership(newOwner);
+    }
+
     function coreTotalSupply() public view returns (uint256) {
         return IKanamitCore(kCore).totalSupply();
     }
 
     function coreCreateAsset(address _owner, string memory _uri)
         public
+        onlyOwner()
         returns (uint256)
     {
         return IKanamitCore(kCore).createAsset(_owner, _uri);

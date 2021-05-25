@@ -41,14 +41,22 @@ describe("=======================================k-trade MISC测试=============
 
   });
 
-  
+
   it("内置core合约调用测试", async function () {
-    await deployments.fixture(["KanamitTrade"]);
-    const { deployer, tokenOwner, user0, user1 } = await getNamedAccounts();
-    const KanamitTrade = await ethers.getContract("KanamitTrade");
+    const [deployer, user0, user1, user2] = await ethers.getSigners();
+
+    const ftryKCore = await ethers.getContractFactory("KanamitCore");
+    const KanamitCore = await ftryKCore.deploy();
+    await KanamitCore.deployed();
+
+    const ftryKTrade = await ethers.getContractFactory("KanamitTrade");
+    const KanamitTrade = await ftryKTrade.deploy(KanamitCore.address);
+    await KanamitTrade.deployed();
+
 
     //地址列表
-    console.log('deployer', deployer, 'tokenOwner', tokenOwner, 'user0', user0, 'user1', user1);
+    console.log('KanamitCore', KanamitCore.address, 'KanamitTrade', KanamitTrade.address);
+    console.log('deployer', await deployer.getAddress(), 'user0', await user0.getAddress(), 'user1', await user1.getAddress());
 
     await KanamitTrade.coreAddress().then(function (coreAddress) {
       console.log('coreAddress', coreAddress);
@@ -60,7 +68,37 @@ describe("=======================================k-trade MISC测试=============
 
     let index = 0;
 
-    await KanamitTrade.coreCreateAsset(user0, "https://twitter.com/zhoushx1018/status/1385995589117124614");
+    //直接转移owner
+    //  k-core直接转移owner；从创建地址，转到k-trade合约
+    console.log('k-core owner', await KanamitCore.owner());
+    expect(await KanamitCore.owner()).to.equal(await deployer.getAddress());
+
+    await KanamitCore.connect(deployer).transferOwnership(KanamitTrade.address);
+
+    console.log('k-core owner', await KanamitCore.owner());
+    expect(await KanamitCore.owner()).to.equal(KanamitTrade.address);
+
+    //间接转移owner
+    //  k-tade在内部，把k-core的owner 从this（k-trade）转移为 user0
+    console.log('k-trade owner', await KanamitTrade.owner());
+    await KanamitTrade.coreTransferOwnership(user0.getAddress());
+
+    console.log('k-core owner', await KanamitCore.owner());
+    expect(await KanamitCore.owner()).to.equal(await user0.getAddress());
+
+    //直接转移owner
+    //  k-core直接转移owner；从user0，转到k-trade合约
+    await KanamitCore.connect(user0).transferOwnership(KanamitTrade.address);
+
+    console.log('k-core owner', await KanamitCore.owner());
+    expect(await KanamitCore.owner()).to.equal(KanamitTrade.address);
+
+    //只允许k-trade的owner调用coreCreateAsset
+    //  以下注释放开会报错
+    // await KanamitTrade.connect(user0).coreCreateAsset(user0.getAddress(), "https://twitter.com/zhoushx1018/status/1385995589117124614");
+
+    //调用k-trade内置的k-core合约
+    await KanamitTrade.coreCreateAsset(user0.getAddress(), "https://twitter.com/zhoushx1018/status/1385995589117124614");
 
     await KanamitTrade.coreGetAssetById(index++).then(function (assetHash) {
       console.log('assetHash', assetHash);
@@ -70,7 +108,7 @@ describe("=======================================k-trade MISC测试=============
       console.log('coreTotalSupply', coreTotalSupply);
     });
 
-    await KanamitTrade.coreCreateAsset(user0, "https://twitter.com/zhoushx1018/status/1394366048300720130");
+    await KanamitTrade.coreCreateAsset(user0.getAddress(), "https://twitter.com/zhoushx1018/status/1394366048300720130");
 
     await KanamitTrade.coreGetAssetById(index++).then(function (assetHash) {
       console.log('assetHash', assetHash);
@@ -79,23 +117,6 @@ describe("=======================================k-trade MISC测试=============
     await KanamitTrade.coreTotalSupply().then(function (coreTotalSupply) {
       console.log('coreTotalSupply', coreTotalSupply);
     });
-
-    await KanamitTrade.setCoreAddress(user0);
-
-    await KanamitTrade.coreAddress().then(function (coreAddress) {
-      console.log('coreAddress', coreAddress);
-    });
-
-    await KanamitTrade.setCoreAddress(tokenOwner);
-
-    await KanamitTrade.coreAddress().then(function (coreAddress) {
-      console.log('coreAddress', coreAddress);
-    });
-
-    await KanamitTrade.owner().then(function (ownerAddress) {
-      console.log('ownerAddress', ownerAddress);
-    }
-    );
 
   });
 
