@@ -410,8 +410,7 @@ contract KanamitTrade is Ownable {
     }
 
     function coreCreateAsset(address _owner, string memory _uri)
-        public
-        onlyOwner()
+        public        
         returns (uint256)
     {
         uint256 hashUri = uint256(keccak256(abi.encodePacked(_uri)));
