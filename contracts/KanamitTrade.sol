@@ -430,6 +430,23 @@ contract KanamitTrade is Ownable {
         return IKanamitCore(kCore).getAssetById(_id);
     }
 
+    //@return assetId，资产ID；0，资产不存在； 非0，资产对应的assetId
+    //@return addrOwner，属主地址；0，属主不存在； 非0，属主地址
+    function getAsset(string memory uri)
+        external
+        view
+        returns (uint256 assetId, address addrOwner)
+    {
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        assetId = IKanamitCore(kCore).getAssetId(uri);
+        addrOwner = mapUriOwner[hashUri];
+    }
+
+    function getUriOwner(string memory uri) external view returns (address) {
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        return mapUriOwner[hashUri];
+    }
+
     fallback() external payable {
         deposit();
     }
