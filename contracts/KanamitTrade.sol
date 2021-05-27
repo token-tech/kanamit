@@ -162,6 +162,7 @@ contract KanamitTrade is Ownable {
         )
     {
         require(msg.sender != address(0), "bad bidder address");
+        require(msg.value != 0, "value can not be zero");
 
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
         require(msg.sender != mapUriOwner[hashUri], "uriOwner can not bid");
@@ -301,6 +302,7 @@ contract KanamitTrade is Ownable {
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
 
         require(msg.sender == mapUriOwner[hashUri], "only uriOwner can accept");
+        require(amount > 0, "amount can not be 0");
 
         require(
             currAuctionId != 0,
