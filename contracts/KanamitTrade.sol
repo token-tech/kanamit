@@ -134,6 +134,7 @@ contract KanamitTrade is Ownable {
     event EventBid(address indexed dst, uint256 wad);
     event Withdrawal(address indexed src, uint256 wad);
     event EventAccept(address indexed winner, uint256 amount, bool success);
+    event EventCreate(address indexed owner,string uri, uint256 assetId);
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -417,7 +418,8 @@ contract KanamitTrade is Ownable {
         require(mapUriOwner[hashUri] == address(0), "uri already mint");
 
         mapUriOwner[hashUri] = _owner;
-        return IKanamitCore(kCore).createAsset(address(this), _uri);
+        assetId = IKanamitCore(kCore).createAsset(address(this), _uri);
+        emit EventCreate(_owner, _uri, assetId);
     }
 
     function coreGetAssetId(string memory uri) external view returns (uint256) {

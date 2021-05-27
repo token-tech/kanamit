@@ -101,12 +101,37 @@ describe("=======================================k-trade MISC测试=============
     console.log('k-core owner', await KanamitCore.owner());
     expect(await KanamitCore.owner()).to.equal(KanamitTrade.address);
 
+
+    console.log('--------------coreCreateAsset---------------');
+
     //只允许k-trade的owner调用coreCreateAsset
     //  以下注释放开会报错
     // await KanamitTrade.connect(user0).coreCreateAsset(user0.getAddress(), "https://twitter.com/zhoushx1018/status/1385995589117124614");
 
+
+    //创建事件
+    let prmCreate = new Promise((resolve, reject) => {
+      KanamitTrade.on('EventCreate', (owner, uri, assetId) => {
+
+        resolve({
+          owner: owner,
+          uri: uri,
+          assetId: assetId
+        });
+      });
+
+      setTimeout(() => {
+        reject(new Error('timeout'));
+      }, 600000)
+    });
+
     //调用k-trade内置的k-core合约
     await KanamitTrade.coreCreateAsset(user0.getAddress(), "https://twitter.com/zhoushx1018/status/1385995589117124614");
+
+    let eventCreate = await prmCreate;
+    console.log("owner", eventCreate["owner"]);
+    console.log("uri", eventCreate["uri"]);
+    console.log("assetId", eventCreate["assetId"]);
 
     await KanamitTrade.coreGetAssetById(index++).then(function (assetHash) {
       console.log('assetHash', assetHash);
@@ -119,8 +144,8 @@ describe("=======================================k-trade MISC测试=============
     let uri = "https://twitter.com/zhoushx1018/status/1394366048300720130";
     await KanamitTrade.getAsset(uri).then(function (result) {
       console.log('found', result['found']);
-      console.log('assetId', result['assetId']);      
-      console.log('addrOwner', result['addrOwner']);      
+      console.log('assetId', result['assetId']);
+      console.log('addrOwner', result['addrOwner']);
     })
 
     await KanamitTrade.coreCreateAsset(user0.getAddress(), uri);
@@ -131,8 +156,8 @@ describe("=======================================k-trade MISC测试=============
 
     await KanamitTrade.getAsset(uri).then(function (result) {
       console.log('found', result['found']);
-      console.log('assetId', result['assetId']);      
-      console.log('addrOwner', result['addrOwner']);      
+      console.log('assetId', result['assetId']);
+      console.log('addrOwner', result['addrOwner']);
     })
 
     await KanamitTrade.getUriOwner(uri).then(function (addrOwner) {
