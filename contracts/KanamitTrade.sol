@@ -418,7 +418,7 @@ contract KanamitTrade is Ownable {
         require(mapUriOwner[hashUri] == address(0), "uri already mint");
 
         mapUriOwner[hashUri] = _owner;
-        assetId = IKanamitCore(kCore).createAsset(address(this), _uri);
+        uint256 assetId = IKanamitCore(kCore).createAsset(address(this), _uri);
         emit EventCreate(_owner, _uri, assetId);
     }
 
