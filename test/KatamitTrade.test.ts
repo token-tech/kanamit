@@ -117,6 +117,12 @@ describe("=======================================k-trade MISC测试=============
     });
 
     let uri = "https://twitter.com/zhoushx1018/status/1394366048300720130";
+    await KanamitTrade.getAsset(uri).then(function (result) {
+      console.log('found', result['found']);
+      console.log('assetId', result['assetId']);      
+      console.log('addrOwner', result['addrOwner']);      
+    })
+
     await KanamitTrade.coreCreateAsset(user0.getAddress(), uri);
 
     await KanamitTrade.coreGetAssetId(uri).then(function (assetId) {
@@ -124,8 +130,9 @@ describe("=======================================k-trade MISC测试=============
     })
 
     await KanamitTrade.getAsset(uri).then(function (result) {
+      console.log('found', result['found']);
       console.log('assetId', result['assetId']);      
-      console.log('addrOwner', result['addrOwner']);
+      console.log('addrOwner', result['addrOwner']);      
     })
 
     await KanamitTrade.getUriOwner(uri).then(function (addrOwner) {

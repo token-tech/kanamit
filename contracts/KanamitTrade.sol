@@ -430,16 +430,23 @@ contract KanamitTrade is Ownable {
         return IKanamitCore(kCore).getAssetById(_id);
     }
 
+    //@return found，资产是否存在；true，存在； false，不存在，需要创建（createAsset）
     //@return assetId，资产ID；0，资产不存在； 非0，资产对应的assetId
     //@return addrOwner，属主地址；0，属主不存在； 非0，属主地址
     function getAsset(string memory uri)
         external
         view
-        returns (uint256 assetId, address addrOwner)
+        returns (
+            bool found,
+            uint256 assetId,
+            address addrOwner
+        )
     {
+        found = false;
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
         assetId = IKanamitCore(kCore).getAssetId(uri);
         addrOwner = mapUriOwner[hashUri];
+        if (assetId != 0 && addrOwner != address(0)) found = true;
     }
 
     function getUriOwner(string memory uri) external view returns (address) {
