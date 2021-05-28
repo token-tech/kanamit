@@ -43,3 +43,15 @@ $ yarn hardhat deploy
 ```
 $ npx hardhat test
 ```
+
+## 链上合约测试
+
+```
+$ pwd 
+.../test_at_fullnode
+
+$ node KanamitTrade.js
+
+...
+
+```

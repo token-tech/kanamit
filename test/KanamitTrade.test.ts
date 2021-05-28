@@ -282,7 +282,7 @@ describe("=======================================k-trade MISC测试=============
 
     //地址列表
     console.log('KanamitCore', KanamitCore.address, 'KanamitTrade', KanamitTrade.address);
-    console.log('deployer', await deployer.getAddress(), 'user0', await user0.getAddress(), 'user1', await user1.getAddress(), 'user2', await user2.getAddress());
+    console.log('deployer', await deployer.getAddress(), 'user0', await user0.getAddress(), 'user1', await user1.getAddress(), 'user2', await user2.getAddress(), 'user3', await user3.getAddress());
 
     await ethers.provider.getBalance(user0.getAddress()).then(function (user0_Balance) {
       console.log('eth_user0_Balance', ethers.utils.formatEther(user0_Balance));
@@ -320,7 +320,23 @@ describe("=======================================k-trade MISC测试=============
     });;
 
 
+    //创建事件
+    let prmBid = new Promise((resolve, reject) => {
+      KanamitTrade.on('EventBid', (bidder, amount) => {
+        resolve({
+          bidder: bidder,
+          amount: amount
+        });
+      });
+
+      setTimeout(() => {
+        reject(new Error('timeout'));
+      }, 600000)
+    });
+
+
     //-------------------bid 1-------------
+    console.log('--------------bid 1---------------');
     let reqId = 1001;
     await KanamitTrade.connect(user3).bid(reqId, uri, { value: ethers.utils.parseEther("12") });
 
@@ -365,6 +381,10 @@ describe("=======================================k-trade MISC测试=============
       console.log('eth_user3_Balance', ethers.utils.formatEther(user3_Balance));
     });;
 
+    let eventBid = await prmBid;
+    // console.log("eventBid", eventBid);
+    console.log("bidder", eventBid["bidder"]);
+    console.log("amount", ethers.utils.formatEther(eventBid["amount"]));
 
     // //-------------------bid 2------------
     reqId++;

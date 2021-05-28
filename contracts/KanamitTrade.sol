@@ -130,11 +130,12 @@ contract KanamitTrade is Ownable {
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event Transfer(address indexed src, address indexed dst, uint256 wad);
-    event Deposit(address indexed dst, uint256 wad);
-    event EventBid(address indexed dst, uint256 wad);
+    event Deposit(address indexed dst, uint256 wad);    
     event Withdrawal(address indexed src, uint256 wad);
+    
+    event EventCreate(address indexed owner, string uri, uint256 assetId);
+    event EventBid(address indexed bidder, uint256 amount);
     event EventAccept(address indexed winner, uint256 amount, bool success);
-    event EventCreate(address indexed owner,string uri, uint256 assetId);
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -205,7 +206,7 @@ contract KanamitTrade is Ownable {
         mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].cancel = false;
 
         balanceOf[address(this)] += msg.value;
-        emit EventBid(address(this), msg.value);
+        emit EventBid(msg.sender, msg.value);
 
         retReqId = reqId;
         retAuctionId = currAuctionId;
