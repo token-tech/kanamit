@@ -374,7 +374,7 @@ contract KanamitTrade is Ownable {
             _returnMainCoin(payable(addressBidders[i]), amounts[i]);
         }
 
-        _transerUriOwner(uri, addressBidders[iIndexWinner]);
+        // _transerUriOwner(uri, addressBidders[iIndexWinner]);
 
         //旧owner获得主币
         // require(balanceOf[address(this)] >= amount);
