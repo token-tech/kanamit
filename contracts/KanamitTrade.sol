@@ -130,11 +130,11 @@ contract KanamitTrade is Ownable {
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event Transfer(address indexed src, address indexed dst, uint256 wad);
-    event Deposit(address indexed dst, uint256 wad);    
+    event Deposit(address indexed dst, uint256 wad);
     event Withdrawal(address indexed src, uint256 wad);
-    
+
     event EventCreate(address indexed owner, string uri, uint256 assetId);
-    event EventBid(address indexed bidder, uint256 amount);
+    event EventBid(address indexed bidder, uint256 amount, uint256 reqId);
     event EventAccept(address indexed winner, uint256 amount, bool success);
 
     mapping(address => uint256) public balanceOf;
@@ -169,11 +169,16 @@ contract KanamitTrade is Ownable {
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
         require(msg.sender != mapUriOwner[hashUri], "uriOwner can not bid");
 
+        require(
+            address(this) == this.coreGetUriOwner(uri),
+            "uri-NFT coreOwner must be k-tade"
+        );
+
         uint256 assetId = IKanamitCore(kCore).getAssetId(uri);
         require(assetId != 0, "uri must be mint, first of all");
 
         uint256 amount = msg.value;
-        (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);
+        (uint256 currAuctionId, uint256 status) = getCurrentAuctionStatus(uri);
 
         //新增拍卖
         //  uri之前没有拍卖过，或者当前的拍卖已经关闭，需要新增拍卖
@@ -188,7 +193,8 @@ contract KanamitTrade is Ownable {
             uint256 currReqId =
                 mapAuctionInfo[currAuctionId].arrReqId[currBidLen - 1];
             require(
-                amount > mapAuctionInfo[hashUri].mapReqIdBid[currReqId].amount,
+                amount >
+                    mapAuctionInfo[currAuctionId].mapReqIdBid[currReqId].amount,
                 "must large than last bid amount"
             );
         }
@@ -206,7 +212,7 @@ contract KanamitTrade is Ownable {
         mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].cancel = false;
 
         balanceOf[address(this)] += msg.value;
-        emit EventBid(msg.sender, msg.value);
+        emit EventBid(msg.sender, msg.value, reqId);
 
         retReqId = reqId;
         retAuctionId = currAuctionId;
@@ -275,7 +281,7 @@ contract KanamitTrade is Ownable {
 
     //@return auctionId，拍卖ID；0， 表示拍卖不存在；非0，有效的拍卖ID
     //@return status，拍卖状态；0，拍卖中； 1， 拍卖已关闭；
-    function getAuctionStatus(string memory uri)
+    function getCurrentAuctionStatus(string memory uri)
         public
         view
         returns (uint256 auctionId, uint256 status)
@@ -285,6 +291,23 @@ contract KanamitTrade is Ownable {
 
         status = 0;
         if (auctionId > 0) status = mapAuctionInfo[auctionId].status;
+    }
+
+    //@return status，拍卖状态；0，拍卖中； 1， 拍卖已关闭；
+    function getAuctionStatus(string memory uri, uint256 inputAuction)
+        public
+        view
+        returns (uint256 status)
+    {
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        uint256 currAuctinId = inputAuction;
+
+        //当前拍卖ID
+        if (inputAuction == 0) {
+            currAuctinId = mapUriAuctionId[hashUri];
+        }
+
+        return mapAuctionInfo[currAuctinId].status;
     }
 
     function coreGetUriOwner(string memory uri)
@@ -300,7 +323,7 @@ contract KanamitTrade is Ownable {
         returns (bool success)
     {
         success = false;
-        (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);
+        (uint256 currAuctionId, uint256 status) = getCurrentAuctionStatus(uri);
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
 
         require(msg.sender == mapUriOwner[hashUri], "only uriOwner can accept");
@@ -359,7 +382,7 @@ contract KanamitTrade is Ownable {
         // msg.sender.transfer(amount);
 
         // emit Withdrawal(msg.sender, amount); //withdraw事件
-        _returnMainCoin(msg.sender, amount);
+        _returnMainCoin(payable(mapUriOwner[hashUri]), amount);
 
         //Uri owner，从本合约转到winner
         mapUriOwner[hashUri] = addressBidders[iIndexWinner];
