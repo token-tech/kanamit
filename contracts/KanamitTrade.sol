@@ -288,6 +288,23 @@ contract KanamitTrade is Ownable {
         if (auctionId > 0) status = mapAuctionInfo[auctionId].status;
     }
 
+    //@return status，拍卖状态；0，拍卖中； 1， 拍卖已关闭；
+    function getAuctionStatus(string memory uri, uint256 inputAuction)
+        public
+        view
+        returns (uint256 status)
+    {
+        uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
+        uint256 currAuctinId = inputAuction;
+
+        //当前拍卖ID
+        if (inputAuction == 0) {
+            currAuctinId = mapUriAuctionId[hashUri];
+        }
+
+        return mapAuctionInfo[currAuctinId].status;
+    }
+
     function coreGetUriOwner(string memory uri)
         external
         view

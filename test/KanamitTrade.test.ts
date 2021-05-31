@@ -588,7 +588,17 @@ describe("=======================================k-trade MISC测试=============
       console.log('eth_user3_Balance', ethers.utils.formatEther(user3_Balance));
     });;
 
+    await KanamitTrade.getCurrentAuctionStatus(uri).then(function (result) {
+      console.log('result', result);
+    });
+
+    console.log('--------------accept---------------');
+
     await KanamitTrade.connect(user0).accept(uri, ethers.utils.parseEther("15")).then(function (result) {
+    });
+
+    await KanamitTrade.getCurrentAuctionStatus(uri).then(function (result) {
+      console.log('result', result);
     });
 
     let eventAccept = await prmAccept;
