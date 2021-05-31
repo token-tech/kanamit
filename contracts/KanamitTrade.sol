@@ -359,7 +359,7 @@ contract KanamitTrade is Ownable {
         // msg.sender.transfer(amount);
 
         // emit Withdrawal(msg.sender, amount); //withdraw事件
-        _returnMainCoin(msg.sender, amount);
+        _returnMainCoin(payable(mapUriOwner[hashUri]), amount);
 
         //Uri owner，从本合约转到winner
         mapUriOwner[hashUri] = addressBidders[iIndexWinner];

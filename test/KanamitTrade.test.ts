@@ -625,6 +625,125 @@ describe("=======================================k-trade MISC测试=============
 
   });
 
+
+
+  it("event filter测试", async function () {
+    const [deployer, user0, user1, user2] = await ethers.getSigners();
+
+    const ftryKCore = await ethers.getContractFactory("KanamitCore");
+    const KanamitCore = await ftryKCore.deploy();
+    const instKanamitCore = await ftryKCore.attach(KanamitCore.address);
+    await KanamitCore.deployed();
+
+    const ftryKTrade = await ethers.getContractFactory("KanamitTrade");
+    const KanamitTrade = await ftryKTrade.deploy(KanamitCore.address);
+    await KanamitTrade.deployed();
+    const instKanamitTrade = await ftryKTrade.attach(KanamitTrade.address);
+
+
+    //地址列表
+    console.log('KanamitCore', KanamitCore.address, 'KanamitTrade', KanamitTrade.address);
+    console.log('deployer', await deployer.getAddress(), 'user0', await user0.getAddress(), 'user1', await user1.getAddress(), 'user2', await user2.getAddress());
+
+    await KanamitTrade.coreAddress().then(function (coreAddress) {
+      console.log('coreAddress', coreAddress);
+    });
+
+    await KanamitTrade.coreTotalSupply().then(function (coreTotalSupply) {
+      console.log('coreTotalSupply', coreTotalSupply);
+    });
+
+    let index = 0;
+
+    //直接转移owner
+    //  k-core直接转移owner；从创建地址，转到k-trade合约
+    console.log('k-core owner', await KanamitCore.owner());
+    expect(await KanamitCore.owner()).to.equal(await deployer.getAddress());
+
+    await KanamitCore.connect(deployer).transferOwnership(KanamitTrade.address);
+
+    console.log('k-core owner', await KanamitCore.owner());
+    expect(await KanamitCore.owner()).to.equal(KanamitTrade.address);
+
+
+    console.log('--------------event filter---------------');
+
+    //创建事件
+    let prmCreate = new Promise((resolve, reject) => {
+      KanamitTrade.on('EventCreate', (owner, uri, assetId) => {
+
+        resolve({
+          owner: owner,
+          uri: uri,
+          assetId: assetId
+        });
+      });
+
+      setTimeout(() => {
+        reject(new Error('timeout'));
+      }, 600000)
+    });
+
+    // let filter = {
+    //   address: instKanamitTrade.address,
+    //   topics: [
+    //     // the name of the event, parnetheses containing the data type of each event, no spaces
+    //     ethers.utils.id("EventCreate(owner,uri,assetId)")
+    //   ]
+    // }
+
+    
+    // ethers.provider.on(filter, (owner, uri, assetId) => {
+    //   console.log("owner", owner);
+    //   console.log("uri", uri);
+    //   console.log("assetId", assetId);
+    // }
+    // );
+
+    //调用k-trade内置的k-core合约
+    // let filter = await instKanamitTrade.filters.coreCreateAsset(user0.getAddress(), "https://twitter.com/zhoushx1018/status/1385995589117124614");
+    await instKanamitTrade.coreCreateAsset(user0.getAddress(), "https://twitter.com/zhoushx1018/status/1385995589117124614");
+
+
+    let eventCreate = await prmCreate;
+    console.log("owner", eventCreate["owner"]);
+    console.log("uri", eventCreate["uri"]);
+    console.log("assetId", eventCreate["assetId"]);
+
+
+
+    // let filter = KanamitTrade.coreCreateAsset(user0.getAddress(), null, null);
+
+    // await KanamitTrade.on('EventCreate', (owner, uri, assetId) => {
+    //   console.log("owner", owner);
+    //   console.log("uri", uri);
+    //   console.log("assetId", assetId);
+    // });
+
+    // console.log("filter", filter);
+    // await KanamitTrade.on(filter, (owner, uri, assetId) => {
+    //   console.log("owner", owner);
+    //   console.log("uri", uri);
+    //   console.log("assetId", assetId);
+    // });
+
+    // //调用k-trade内置的k-core合约
+    // // let filter = await instKanamitTrade.filters.coreCreateAsset(user0.getAddress(), "https://twitter.com/zhoushx1018/status/1385995589117124614");
+    // filter = await instKanamitTrade.coreCreateAsset(user0.getAddress(), "https://twitter.com/zhoushx1018/status/1385995589117124615");
+    // console.log("filter", filter);
+    // await KanamitTrade.on(filter, (owner, uri, assetId) => {
+    //   console.log("owner", owner);
+    //   console.log("uri", uri);
+    //   console.log("assetId", assetId);
+    // });
+
+
+
+  });
+
+
+
+
 });
 
 
