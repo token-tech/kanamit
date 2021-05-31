@@ -95,31 +95,60 @@ let tradeMisc = async time => {
 let tradeBid = async time => {
     //带signer的合约对象
     let provider = new ethers.providers.Web3Provider(web3.currentProvider);
-    let addrKCore = '0x27148E0189B28F794ce10F7bA2D5f30227f6CB0C';
-    let addrKTrade = '0x4bdfd174449b46eb69a27ad457f69c53f39df1e2';
-    let addrKTradeNew = '0x4949AA7D62FcfaD430BbF7A981A816c5B39A5DE1';
+    // let addrKCore = '0xcc271e13B184A05d044c70C9Abea62c7f25b6319';
+    let addrKTrade = '0xbe30205CC8A921615d4141917421c8B374762B26';
+    // let addrKTradeNew = '0x4949AA7D62FcfaD430BbF7A981A816c5B39A5DE1';
     let privateKey = 'b8bc5402eef3232cc1adea9a12b0b2c463e02f2b137278d60afb4b00862926ba';
     let walletOwner = new ethers.Wallet(privateKey, provider);
 
-    let contractKCore = getEthersContract('../artifacts/contracts/KanamitCore.sol/KanamitCore.json', addrKCore, provider);
-    let contractKCoreWithSigner = contractKCore.connect(walletOwner);
+    // let contractKCore = getEthersContract('../artifacts/contracts/KanamitCore.sol/KanamitCore.json', addrKCore, provider);
+    // let contractKCoreWithSigner = contractKCore.connect(walletOwner);
 
     let contractKTrade = getEthersContract('../artifacts/contracts/KanamitTrade.sol/KanamitTrade.json', addrKTrade, provider);
     let contractKTradeWithSigner = contractKTrade.connect(walletOwner);
 
-    let coreOwner = await contractKCoreWithSigner.owner();
-    console.log('coreOwner', coreOwner);
+    // let coreOwner = await contractKCoreWithSigner.owner();
+    // console.log('coreOwner', coreOwner);
 
     // //更改core的owner
     // await contractKTradeWithSigner.coreTransferOwnership(addrKTradeNew);
 
+    //bid
+    let reqId = 99001;
+    let uri = 'r6mAsRVAUaM';
+    await contractKTradeWithSigner.bid(reqId, uri,  { value: ethers.utils.parseEther("0.00001") });
+    
+
 }
 
+
+let tradeCreateAsset = async time => {
+    //带signer的合约对象
+    let provider = new ethers.providers.Web3Provider(web3.currentProvider);
+    let addrKCore = '0x27148E0189B28F794ce10F7bA2D5f30227f6CB0C';
+    let addrKTrade = '0x4949AA7D62FcfaD430BbF7A981A816c5B39A5DE1';    
+    let privateKey = 'b8bc5402eef3232cc1adea9a12b0b2c463e02f2b137278d60afb4b00862926ba';
+    let walletOwner = new ethers.Wallet(privateKey, provider);
+
+    let contractKTrade = getEthersContract('../artifacts/contracts/KanamitTrade.sol/KanamitTrade.json', addrKTrade, provider);
+    let contractKTradeWithSigner = contractKTrade.connect(walletOwner);
+
+    // ceateAsset
+    // let uriOwnerAddress = '0xcb329f9e0867bfde7e3adba300c8042e38e86587';
+    // uri = "https://twitter.com/zhoushx1018/status/1385995589117124614";
+    // await contractKTradeWithSigner.coreCreateAsset(uriOwnerAddress, uri, { gasLimit: 250000 });
+
+    let uriOwnerAddress = '0xcb329f9e0867bfde7e3adba300c8042e38e86587';
+    uri = "uUE-Yg9xWrQ";
+    await contractKTradeWithSigner.coreCreateAsset(uriOwnerAddress, uri, { gasLimit: 250000 });
+
+}
 
 let test = async time => {
     // await trade()
     // await tradeMisc()
     await tradeBid()
+    // await tradeCreateAsset()
 }
 
 test()
