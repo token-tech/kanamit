@@ -152,11 +152,33 @@ let tradeCreateAsset = async time => {
 
 }
 
+
+let tradeBidEvent = async time => {
+    //带signer的合约对象
+    let provider = new ethers.providers.Web3Provider(web3.currentProvider);
+    let addrKTrade = '0xbe30205CC8A921615d4141917421c8B374762B26';
+    let privateKey = 'b8bc5402eef3232cc1adea9a12b0b2c463e02f2b137278d60afb4b00862926ba';
+    let walletOwner = new ethers.Wallet(privateKey, provider);
+
+    let contractKTrade = getEthersContract('../artifacts/contracts/KanamitTrade.sol/KanamitTrade.json', addrKTrade, provider);
+    let contractKTradeWithSigner = contractKTrade.connect(walletOwner);
+
+    //bid
+    let addrListen = '0x3429DdD4Bcaa0A6BaC690184AA1163AD1A757962';
+    let filter = contractKTradeWithSigner.filters.EventBid(addrListen, null, null);
+    await contractKTradeWithSigner.on(filter, (addrSender, amount, reqId) => {
+        console.log('addrSender', addrSender, 'amount', ethers.utils.formatEther(amount), 'reqId', reqId.toNumber());
+    });
+
+}
+
 let test = async time => {
     // await trade()
     // await tradeMisc()
-    await tradeBid()
+    // await tradeBid()
     // await tradeCreateAsset()
+
+    await tradeBidEvent()
 }
 
 test()
