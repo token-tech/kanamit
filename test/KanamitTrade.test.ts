@@ -322,10 +322,11 @@ describe("=======================================k-trade MISC测试=============
 
     //创建事件
     let prmBid = new Promise((resolve, reject) => {
-      KanamitTrade.on('EventBid', (bidder, amount) => {
+      KanamitTrade.on('EventBid', (bidder, amount, reqId) => {
         resolve({
           bidder: bidder,
-          amount: amount
+          amount: amount,
+          reqId: reqId
         });
       });
 
@@ -385,6 +386,7 @@ describe("=======================================k-trade MISC测试=============
     // console.log("eventBid", eventBid);
     console.log("bidder", eventBid["bidder"]);
     console.log("amount", ethers.utils.formatEther(eventBid["amount"]));
+    console.log("reqId", eventBid["reqId"].toNumber());
 
     // //-------------------bid 2------------
     reqId++;
