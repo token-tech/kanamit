@@ -336,8 +336,8 @@ describe("=======================================k-trade MISC测试=============
     });
 
 
-    //-------------------bid 1-------------
-    console.log('--------------bid 1---------------');
+    //-------------------bid 1.1-------------
+    console.log('--------------bid 1.1---------------');
     let reqId = 1001;
     await KanamitTrade.connect(user3).bid(reqId, uri, { value: ethers.utils.parseEther("12") });
 
@@ -388,7 +388,7 @@ describe("=======================================k-trade MISC测试=============
     console.log("amount", ethers.utils.formatEther(eventBid["amount"]));
     console.log("reqId", eventBid["reqId"].toNumber());
 
-    // //-------------------bid 2------------
+    // //-------------------bid 1.2------------
     reqId++;
     await KanamitTrade.connect(user1).bid(reqId, uri, { value: ethers.utils.parseEther("13") });
 
@@ -435,7 +435,7 @@ describe("=======================================k-trade MISC测试=============
 
 
 
-    // //-------------------bid 3------------
+    // //-------------------bid 1.3------------
     reqId++;
     await KanamitTrade.connect(user2).bid(reqId, uri, { value: ethers.utils.parseEther("15") });
 
@@ -635,6 +635,85 @@ describe("=======================================k-trade MISC测试=============
     });;
 
 
+    //
+
+
+    //创建事件
+    prmBid = new Promise((resolve, reject) => {
+      KanamitTrade.on('EventBid', (bidder, amount, reqId) => {
+        resolve({
+          bidder: bidder,
+          amount: amount,
+          reqId: reqId
+        });
+      });
+
+      setTimeout(() => {
+        reject(new Error('timeout'));
+      }, 600000)
+    });
+
+
+
+    console.log('--------------new Asset for next round bid---------------');
+
+    //调用k-trade内置的k-core合约
+    uri = "https://twitter.com/zhoushx1018/status/1385995589117124615";
+    await KanamitTrade.coreCreateAsset(user0.getAddress(), uri);
+
+    console.log('--------------bid 2.1---------------');
+    reqId = 2001;
+    await KanamitTrade.connect(user3).bid(reqId, uri, { value: ethers.utils.parseEther("12") });
+    
+    eventBid = await prmBid;
+    // console.log("eventBid", eventBid);
+    console.log("eventBid process", eventBid);
+    console.log("bidder", eventBid["bidder"]);
+    console.log("amount", ethers.utils.formatEther(eventBid["amount"]));
+    console.log("reqId", eventBid["reqId"].toNumber());
+
+    await KanamitTrade.balanceOf(user0.getAddress()).then(function (user0_Balance) {
+      console.log('ktm_user0_Balance', ethers.utils.formatEther(user0_Balance));
+    });
+
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (ownerBalance) {
+      console.log('ktm_owner_Balance', ethers.utils.formatEther(ownerBalance));
+    });
+
+    await KanamitTrade.balanceOf(deployer.getAddress()).then(function (deployerBalance) {
+      console.log('ktm_deployer_Balance', ethers.utils.formatEther(deployerBalance));
+    });
+
+    await KanamitTrade.balanceOf(KanamitTrade.address).then(function (kTrade_Balance) {
+      console.log('ktm_kTrade_Balance', ethers.utils.formatEther(kTrade_Balance));
+    });
+
+    await KanamitTrade.totalSupply().then(function (supply) {
+      console.log('ktm_supply', ethers.utils.formatEther(supply));
+    });
+
+    await ethers.provider.getBalance(deployer.getAddress()).then(function (deployerBalance) {
+      console.log('eth_Deployer_Balance', ethers.utils.formatEther(deployerBalance));
+    });;
+
+
+    await ethers.provider.getBalance(user0.getAddress()).then(function (user0_Balance) {
+      console.log('eth_user0_Balance', ethers.utils.formatEther(user0_Balance));
+    });;
+
+    await ethers.provider.getBalance(user1.getAddress()).then(function (user1_Balance) {
+      console.log('eth_user1_Balance', ethers.utils.formatEther(user1_Balance));
+    });;
+
+    await ethers.provider.getBalance(user2.getAddress()).then(function (user2_Balance) {
+      console.log('eth_user2_Balance', ethers.utils.formatEther(user2_Balance));
+    });;
+
+    await ethers.provider.getBalance(user3.getAddress()).then(function (user3_Balance) {
+      console.log('eth_user3_Balance', ethers.utils.formatEther(user3_Balance));
+    });;
+
+
   });
 
 
@@ -704,7 +783,7 @@ describe("=======================================k-trade MISC测试=============
     //   ]
     // }
 
-    
+
     // ethers.provider.on(filter, (owner, uri, assetId) => {
     //   console.log("owner", owner);
     //   console.log("uri", uri);
