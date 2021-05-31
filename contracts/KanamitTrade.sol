@@ -130,9 +130,9 @@ contract KanamitTrade is Ownable {
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event Transfer(address indexed src, address indexed dst, uint256 wad);
-    event Deposit(address indexed dst, uint256 wad);    
+    event Deposit(address indexed dst, uint256 wad);
     event Withdrawal(address indexed src, uint256 wad);
-    
+
     event EventCreate(address indexed owner, string uri, uint256 assetId);
     event EventBid(address indexed bidder, uint256 amount);
     event EventAccept(address indexed winner, uint256 amount, bool success);
@@ -188,7 +188,8 @@ contract KanamitTrade is Ownable {
             uint256 currReqId =
                 mapAuctionInfo[currAuctionId].arrReqId[currBidLen - 1];
             require(
-                amount > mapAuctionInfo[hashUri].mapReqIdBid[currReqId].amount,
+                amount >
+                    mapAuctionInfo[currAuctionId].mapReqIdBid[currReqId].amount,
                 "must large than last bid amount"
             );
         }
