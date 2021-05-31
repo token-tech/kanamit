@@ -173,7 +173,7 @@ contract KanamitTrade is Ownable {
         require(assetId != 0, "uri must be mint, first of all");
 
         uint256 amount = msg.value;
-        (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);
+        (uint256 currAuctionId, uint256 status) = getCurrentAuctionStatus(uri);
 
         //新增拍卖
         //  uri之前没有拍卖过，或者当前的拍卖已经关闭，需要新增拍卖
@@ -276,7 +276,7 @@ contract KanamitTrade is Ownable {
 
     //@return auctionId，拍卖ID；0， 表示拍卖不存在；非0，有效的拍卖ID
     //@return status，拍卖状态；0，拍卖中； 1， 拍卖已关闭；
-    function getAuctionStatus(string memory uri)
+    function getCurrentAuctionStatus(string memory uri)
         public
         view
         returns (uint256 auctionId, uint256 status)
@@ -301,7 +301,7 @@ contract KanamitTrade is Ownable {
         returns (bool success)
     {
         success = false;
-        (uint256 currAuctionId, uint256 status) = getAuctionStatus(uri);
+        (uint256 currAuctionId, uint256 status) = getCurrentAuctionStatus(uri);
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
 
         require(msg.sender == mapUriOwner[hashUri], "only uriOwner can accept");

@@ -520,15 +520,15 @@ describe("=======================================k-trade MISC测试=============
       printArrayRaw(result.cancels, "cancels");
     });
 
-    //-------------------getAuctionStatus------------    
-    await KanamitTrade.getAuctionStatus(uri).then(function (result) {
+    //-------------------getCurrentAuctionStatus------------    
+    await KanamitTrade.getCurrentAuctionStatus(uri).then(function (result) {
       // console.log('result', result);
 
       //uri拍卖已存在，auctionId不能为0
       expect(result.auctionId).not.to.equal(0);
     });
 
-    await KanamitTrade.getAuctionStatus("https://foo.bar.org").then(function (result) {
+    await KanamitTrade.getCurrentAuctionStatus("https://foo.bar.org").then(function (result) {
       // console.log('result', result);
 
       //uri拍卖不存在，auctionId为0
