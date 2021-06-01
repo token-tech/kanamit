@@ -169,13 +169,13 @@ contract KanamitTrade is Ownable {
         uint256 hashUri = uint256(keccak256(abi.encodePacked(uri)));
         require(msg.sender != mapUriOwner[hashUri], "uriOwner can not bid");
 
+        uint256 assetId = IKanamitCore(kCore).getAssetId(uri);
+        require(assetId != 0, "uri must be mint, first of all");
+
         require(
             address(this) == this.coreGetUriOwner(uri),
             "uri-NFT coreOwner must be k-tade"
         );
-
-        uint256 assetId = IKanamitCore(kCore).getAssetId(uri);
-        require(assetId != 0, "uri must be mint, first of all");
 
         uint256 amount = msg.value;
         (uint256 currAuctionId, uint256 status) = getCurrentAuctionStatus(uri);
