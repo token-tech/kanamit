@@ -95,32 +95,17 @@ let tradeMisc = async time => {
 let tradeBid = async time => {
     //带signer的合约对象
     let provider = new ethers.providers.Web3Provider(web3.currentProvider);
-    // let addrKCore = '0xcc271e13B184A05d044c70C9Abea62c7f25b6319';
-    let addrKTrade = '0xbe30205CC8A921615d4141917421c8B374762B26';
-    // let addrKTradeNew = '0x4949AA7D62FcfaD430BbF7A981A816c5B39A5DE1';
+    let addrKTrade = '0xFD1dBA778c2FaBdcB52E4094D6AB5B54650B984f';
     let privateKey = 'b8bc5402eef3232cc1adea9a12b0b2c463e02f2b137278d60afb4b00862926ba';
     let walletOwner = new ethers.Wallet(privateKey, provider);
-
-    // let contractKCore = getEthersContract('../artifacts/contracts/KanamitCore.sol/KanamitCore.json', addrKCore, provider);
-    // let contractKCoreWithSigner = contractKCore.connect(walletOwner);
 
     let contractKTrade = getEthersContract('../artifacts/contracts/KanamitTrade.sol/KanamitTrade.json', addrKTrade, provider);
     let contractKTradeWithSigner = contractKTrade.connect(walletOwner);
 
-    // console.log('walletOwner address',walletOwner.address);
-
-    // let coreOwner = await contractKCoreWithSigner.owner();
-    // console.log('coreOwner', coreOwner);
-
-    // //更改core的owner
-    // await contractKTradeWithSigner.coreTransferOwnership(addrKTradeNew);
-
     //bid
-    let reqId = 99005;
-    let uri = 'r6mAsRVAUaM';
-
-
-    await contractKTradeWithSigner.bid(reqId, uri, { value: ethers.utils.parseEther("0.0019") });
+    let reqId = 99009;
+    let uri = 'r6mAsRVAUaN';
+    await contractKTradeWithSigner.bid(reqId, uri, { value: ethers.utils.parseEther("0.0005"), gasLimit: 250000 });
 
     let filter = contractKTradeWithSigner.filters.EventBid(walletOwner.address, null, null);
     await contractKTradeWithSigner.on(filter, (addrSender, amount, reqId) => {
@@ -156,7 +141,7 @@ let tradeCreateAsset = async time => {
 let tradeBidEvent = async time => {
     //带signer的合约对象
     let provider = new ethers.providers.Web3Provider(web3.currentProvider);
-    let addrKTrade = '0xbe30205CC8A921615d4141917421c8B374762B26';
+    let addrKTrade = '0xFD1dBA778c2FaBdcB52E4094D6AB5B54650B984f';
     let privateKey = 'b8bc5402eef3232cc1adea9a12b0b2c463e02f2b137278d60afb4b00862926ba';
     let walletOwner = new ethers.Wallet(privateKey, provider);
 
@@ -172,11 +157,10 @@ let tradeBidEvent = async time => {
 
 }
 
-
 let tradeAcceptEvent = async time => {
     //带signer的合约对象
     let provider = new ethers.providers.Web3Provider(web3.currentProvider);
-    let addrKTrade = '0xbe30205CC8A921615d4141917421c8B374762B26';
+    let addrKTrade = '0xFD1dBA778c2FaBdcB52E4094D6AB5B54650B984f';
     let privateKey = 'b8bc5402eef3232cc1adea9a12b0b2c463e02f2b137278d60afb4b00862926ba';
     let walletOwner = new ethers.Wallet(privateKey, provider);
 
@@ -195,10 +179,9 @@ let tradeAcceptEvent = async time => {
 let test = async time => {
     // await trade()
     // await tradeMisc()
-    // await tradeBid()
+    await tradeBid()
     // await tradeCreateAsset()
-
-    await tradeBidEvent()
+    // await tradeBidEvent()
     // await tradeAcceptEvent()
 }
 
