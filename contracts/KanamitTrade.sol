@@ -135,7 +135,12 @@ contract KanamitTrade is Ownable {
 
     event EventCreate(address indexed owner, string uri, uint256 assetId);
     event EventBid(address indexed bidder, uint256 amount, uint256 reqId);
-    event EventAccept(address indexed winner, uint256 amount, bool success);
+    event EventAccept(
+        address indexed winner,
+        uint256 amount,
+        uint256 reqId,
+        bool accept
+    );
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -372,6 +377,9 @@ contract KanamitTrade is Ownable {
 
             //losser返还主币
             _returnMainCoin(payable(addressBidders[i]), amounts[i]);
+
+            //Accept事件--通知失败的Bidder
+            emit EventAccept(addressBidders[i], amounts[i], reqIds[i], false);
         }
 
         // _transerUriOwner(uri, addressBidders[iIndexWinner]);
@@ -390,8 +398,13 @@ contract KanamitTrade is Ownable {
         //拍卖状态，调整为已关闭
         mapAuctionInfo[auctionId].status = 1;
 
-        //accept事件
-        emit EventAccept(addressBidders[iIndexWinner], amount, success);
+        //accept事件--通知成功的Bidder
+        emit EventAccept(
+            addressBidders[iIndexWinner],
+            amount,
+            reqIds[iIndexWinner],
+            true
+        );
 
         return success;
     }

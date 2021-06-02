@@ -549,12 +549,13 @@ describe("=======================================k-trade MISC测试=============
 
     //创建事件
     let prmAccept = new Promise((resolve, reject) => {
-      KanamitTrade.on('EventAccept', (winner, amount, success) => {
+      KanamitTrade.on('EventAccept', (winner, amount, reqId, accept) => {
 
         resolve({
           winner: winner,
           amount: amount,
-          success: success
+          reqId: reqId,
+          accept: accept
         });
       });
 
@@ -608,7 +609,8 @@ describe("=======================================k-trade MISC测试=============
     console.log("winner", eventAccept["winner"]);
     // console.log("amount", eventAccept["amount"]);
     console.log("amount", ethers.utils.formatEther(eventAccept["amount"]));
-    console.log("success", eventAccept["success"]);
+    console.log("reqId", eventAccept["reqId"].toNumber());
+    console.log("accept", eventAccept["accept"]);
 
     await KanamitTrade.coreGetUriOwner(uri).then(function (addressOwner) {
       console.log("addressOwner", addressOwner);
@@ -664,7 +666,7 @@ describe("=======================================k-trade MISC测试=============
     console.log('--------------bid 2.1---------------');
     reqId = 2001;
     await KanamitTrade.connect(user3).bid(reqId, uri, { value: ethers.utils.parseEther("12") });
-    
+
     eventBid = await prmBid;
     // console.log("eventBid", eventBid);
     console.log("eventBid process", eventBid);
