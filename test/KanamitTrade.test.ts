@@ -481,7 +481,8 @@ describe("=======================================k-trade MISC测试=============
     });;
 
 
-    //-------------------getBids------------    
+    //-------------------getBids--------------------
+    console.log('--------------------getBids--------------------');
     await KanamitTrade.getBids(uri, 0).then(function (result) {
 
       function printArrayNumber(array, arrName) {
