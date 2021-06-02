@@ -192,6 +192,12 @@ contract KanamitTrade is Ownable {
             mapUriAuctionId[hashUri] = currAuctionId;
         }
 
+        //reqId判重
+        require(
+            0 == mapAuctionInfo[currAuctionId].mapReqIdBid[reqId].amount,
+            "reqId repeat"
+        );
+
         //出价额度校验
         uint256 currBidLen = mapAuctionInfo[currAuctionId].arrReqId.length;
         if (currBidLen > 0) {
