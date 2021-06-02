@@ -95,7 +95,7 @@ let tradeMisc = async time => {
 let tradeBid = async time => {
     //带signer的合约对象
     let provider = new ethers.providers.Web3Provider(web3.currentProvider);
-    let addrKTrade = '0xFD1dBA778c2FaBdcB52E4094D6AB5B54650B984f';
+    let addrKTrade = '0xfA445d98AcF80001AC0aBBF06AD1C0a34B682d29';
     let privateKey = 'b8bc5402eef3232cc1adea9a12b0b2c463e02f2b137278d60afb4b00862926ba';
     let walletOwner = new ethers.Wallet(privateKey, provider);
 
@@ -141,7 +141,7 @@ let tradeCreateAsset = async time => {
 let tradeBidEvent = async time => {
     //带signer的合约对象
     let provider = new ethers.providers.Web3Provider(web3.currentProvider);
-    let addrKTrade = '0xFD1dBA778c2FaBdcB52E4094D6AB5B54650B984f';
+    let addrKTrade = '0xfA445d98AcF80001AC0aBBF06AD1C0a34B682d29';
     let privateKey = 'b8bc5402eef3232cc1adea9a12b0b2c463e02f2b137278d60afb4b00862926ba';
     let walletOwner = new ethers.Wallet(privateKey, provider);
 
@@ -160,7 +160,7 @@ let tradeBidEvent = async time => {
 let tradeAcceptEvent = async time => {
     //带signer的合约对象
     let provider = new ethers.providers.Web3Provider(web3.currentProvider);
-    let addrKTrade = '0xFD1dBA778c2FaBdcB52E4094D6AB5B54650B984f';
+    let addrKTrade = '0xfA445d98AcF80001AC0aBBF06AD1C0a34B682d29';
     let privateKey = 'b8bc5402eef3232cc1adea9a12b0b2c463e02f2b137278d60afb4b00862926ba';
     let walletOwner = new ethers.Wallet(privateKey, provider);
 
@@ -168,10 +168,10 @@ let tradeAcceptEvent = async time => {
     let contractKTradeWithSigner = contractKTrade.connect(walletOwner);
 
     //bid
-    let addrListen = '0x3429DdD4Bcaa0A6BaC690184AA1163AD1A757962';
+    // let addrListen = '0x3429DdD4Bcaa0A6BaC690184AA1163AD1A757962';
     let filter = contractKTradeWithSigner.filters.EventAccept(null, null, null);
-    await contractKTradeWithSigner.on(filter, (addrSender, amount, success) => {
-        console.log('addrSender', addrSender, 'amount', ethers.utils.formatEther(amount), 'success', success);
+    await contractKTradeWithSigner.on(filter, (addrSender, amount, reqId, accept) => {
+        console.log('addrSender', addrSender, 'amount', ethers.utils.formatEther(amount), 'reqId', reqId.toNumber(), 'accept', accept);
     });
 
 }
@@ -181,8 +181,8 @@ let test = async time => {
     // await tradeMisc()
     // await tradeBid()
     // await tradeCreateAsset()
-    await tradeBidEvent()
-    // await tradeAcceptEvent()
+    tradeBidEvent()
+    tradeAcceptEvent()
 }
 
 test()
