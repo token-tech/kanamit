@@ -53,9 +53,9 @@ let tradeBid = async time => {
     let contractKTradeWithSigner = contractKTrade.connect(walletOwner);
 
     //bid
-    let reqId = 9913;
+    let reqId = 9911;
     let uri = 'r6mAsRVAUaN';
-    await contractKTradeWithSigner.bid(reqId, uri, { value: ethers.utils.parseEther("0.0005"), gasLimit: 250000 });
+    await contractKTradeWithSigner.bid(reqId, uri, { value: ethers.utils.parseEther("0.0002"), gasLimit: 250000 });
 
     let filter = contractKTradeWithSigner.filters.EventBid(walletOwner.address, null, null);
     await contractKTradeWithSigner.on(filter, (addrSender, amount, reqId) => {
