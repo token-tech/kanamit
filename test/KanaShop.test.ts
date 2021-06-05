@@ -94,7 +94,7 @@ describe("=========================== KanaShop MISC ==========================="
 
     console.log('--------------------getOrdersByAddress--------------------');
     await kanaShop.getOrdersByAddress(user1.getAddress()).then(function (result) {
-      console.log('result', result);
+      // console.log('result', result);
 
       function printArrayNumber(array, arrName) {
         console.log('ArrayNumber', arrName, 'len', array.length);
@@ -132,27 +132,149 @@ describe("=========================== KanaShop MISC ==========================="
       printArrayNumber(result.updateTimes, "updatetimes---");
     });
 
-
-
     console.log('--------------price---------------');
-    //setPrice--owner 校验；放开以下注释，会报错    
-    // await kanaShop.connect(user1).setPrice(ethers.utils.parseUnits("0.00006", decimalKanaToken) ,ethers.utils.parseEther("1"));
+    //setRawPrice--owner 校验；放开以下注释，会报错    
+    // await kanaShop.connect(user1).setRawPrice(ethers.utils.parseUnits("0.00006", decimalKanaToken) ,ethers.utils.parseEther("1"));
 
-    //setPrice--兑换比例过高校验，以下注释放开会报错
-    // await kanaShop.setPrice(ethers.utils.parseUnits("1", decimalKanaToken), ethers.utils.parseEther("1"));
+    //setRawPrice--兑换比例过高校验，以下注释放开会报错
+    // await kanaShop.setRawPrice(ethers.utils.parseUnits("1", decimalKanaToken), ethers.utils.parseEther("1"));
 
-    //setPrice
-    await kanaShop.setPrice(ethers.utils.parseUnits("45000000", decimalKanaToken), ethers.utils.parseEther("1"));
+    //setRawPrice
+    await kanaShop.setRawPrice(ethers.utils.parseUnits("45000000", decimalKanaToken), ethers.utils.parseEther("1"));
 
-    // getPrice
-    await kanaShop.getPrice().then(function (result) {
+    // getRawPrice
+    await kanaShop.getRawPrice().then(function (result) {
       // console.log('result', result);
       console.log('amountKana', ethers.utils.formatUnits(result.amountKana, decimalKanaToken));
       console.log('amountEth', ethers.utils.formatEther(result.amountEth));
-
-      // console.log('amountKana',result.amountKana.toString());
     });
 
+    // getRate
+    await kanaShop.getRate().then(function (rate) {
+      console.log('rate', rate.toNumber());
+    });
+
+    console.log('--------------release---------------');
+
+    //创建事件
+    let prmRelease = new Promise((resolve, reject) => {
+      kanaShop.on('EventRelease', (address, amount) => {
+
+        resolve({
+          address: address,
+          amount: amount
+        });
+      });
+
+      setTimeout(() => {
+        reject(new Error('timeout'));
+      }, 600000)
+    });
+
+
+    //release--owner 校验；放开以下注释，会报错    
+    // await kanaShop.connect(user1).release();
+
+    console.log('--------------release---------------');
+    //mint
+    //  直接mint给 kanaShop，会涉及繁杂且容易出错的 allowance 和 approve
+    //  这里先mint给 deployer，再由 deployer 转账给 kanaShop    
+    await kanaToken.mint(deployer.getAddress(), ethers.utils.parseUnits("100000000000", decimalKanaToken));
+    await kanaToken.connect(deployer).transfer(kanaShop.address, ethers.utils.parseUnits("100000000000", decimalKanaToken));
+
+    await kanaToken.minted().then(function (minted) {
+      console.log('minted', ethers.utils.formatUnits(minted, decimalKanaToken));
+    });
+
+    await kanaToken.balanceOf(kanaShop.address).then(function (balance) {
+      console.log('KANA_kanaShop_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
+
+    await kanaToken.balanceOf(user0.getAddress()).then(function (balance) {
+      console.log('KANA_user0_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
+
+    await kanaToken.balanceOf(user1.getAddress()).then(function (balance) {
+      console.log('KANA_user1_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
+
+    //release
+    await kanaShop.release();
+
+    let eventRelease = await prmRelease;
+    // console.log("eventRelease", eventRelease);
+    console.log("address", eventRelease["address"]);
+    console.log("amount", ethers.utils.formatUnits(eventRelease["amount"], decimalKanaToken));
+
+
+    // console.log('--------------------getOrdersByAddress--------------------');
+    // await kanaShop.getOrdersByAddress(user1.getAddress()).then(function (result) {
+    //   // console.log('result', result);
+
+    //   function printArrayNumber(array, arrName) {
+    //     console.log('ArrayNumber', arrName, 'len', array.length);
+    //     for (let i = 0; i < array.length; i++) {
+    //       console.log('element', array[i].toNumber());
+    //     }
+    //   }
+
+    //   function printArrayAddress(array, arrName) {
+    //     console.log('ArrayNumber', arrName, 'len', array.length);
+    //     for (let i = 0; i < array.length; i++) {
+    //       console.log('element', array[i].toString());
+    //     }
+    //   }
+
+    //   function printArrayEther(array, arrName) {
+    //     console.log('ArrayEther', arrName, 'len', array.length);
+    //     for (let i = 0; i < array.length; i++) {
+    //       console.log('element', ethers.utils.formatEther(array[i]));
+    //     }
+    //   }
+
+    //   function printArrayRaw(array, arrName) {
+    //     console.log('ArrayNumber', arrName, 'len', array.length);
+    //     for (let i = 0; i < array.length; i++) {
+    //       console.log('element', array[i]);
+    //     }
+    //   }
+
+    //   console.log('totalOrders=========', result.totalOrders.toNumber());
+    //   printArrayAddress(result.addrUsers, "addrUsers----");
+    //   printArrayEther(result.amounts, "amounts-----");
+    //   printArrayRaw(result.releases, "releases-----");
+    //   printArrayNumber(result.createTimes, "createTimes----");
+    //   printArrayNumber(result.updateTimes, "updatetimes---");
+    // });
+
+    await kanaToken.balanceOf(kanaShop.address).then(function (balance) {
+      console.log('KANA_kanaShop_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
+
+    await kanaToken.balanceOf(user0.getAddress()).then(function (balance) {
+      console.log('KANA_user0_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
+
+    await kanaToken.balanceOf(user1.getAddress()).then(function (balance) {
+      console.log('KANA_user1_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
+
+    console.log('--------------release again---------------');
+    //再次release
+    //  应该没有任何需要release的
+    await kanaShop.release();
+
+    await kanaToken.balanceOf(kanaShop.address).then(function (balance) {
+      console.log('KANA_kanaShop_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
+
+    await kanaToken.balanceOf(user0.getAddress()).then(function (balance) {
+      console.log('KANA_user0_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
+
+    await kanaToken.balanceOf(user1.getAddress()).then(function (balance) {
+      console.log('KANA_user1_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
 
   });
 

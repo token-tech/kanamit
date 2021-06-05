@@ -168,7 +168,7 @@ contract KanaShop is Ownable {
     uint256 private _totalSellLimit = 200 * 10**uint256(_decimalsETH); //销售总量限制，200 ETH
     uint256 private _totalsold; //已售出总量；
 
-    uint256 _releaseIndex; //已释放数组记录的下标
+    int256 _releaseIndex; //已释放数组记录的下标
 
     struct OrderInfo {
         address addrUser;
@@ -193,12 +193,13 @@ contract KanaShop is Ownable {
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event EventBuyKana(address indexed dst, uint256 wad);
     event EventOwnerWithdraw(address indexed owner, uint256 amount);
-    event EventSetPrice(uint256 amountKana, uint256 amountEth);
+    event EventSetRawPrice(uint256 amountKana, uint256 amountEth);
+    event EventRelease(address indexed addr, uint256 amountKana);
 
     constructor(address _kToken) public {
         kanaToken = _kToken;
         _totalsold = 0;
-        _releaseIndex = 0;
+        _releaseIndex = -1;
 
         _priceKanaAmount = 0;
         _priceEthAmount = 0;
@@ -295,7 +296,30 @@ contract KanaShop is Ownable {
 
     function release() public onlyOwner {
         //     return IERC20(kanaToken).balanceOf(address(this));
-        //     return IERC20(kanaToken).transfer(to, amount);
+
+        require(_priceKanaAmount != 0, "need to set price of kana");
+        require(_priceEthAmount != 0, "need to set price of eth");
+
+        uint256 currIndex = uint256(_releaseIndex + 1);
+        for (uint256 i = currIndex; i < arrOrderTimeStamp.length; i++) {
+            if (true == mapOrderInfo[i].release) continue;
+
+            //兑换计算
+            uint256 amountKanaRelease =
+                (mapOrderInfo[i].amount * _priceKanaAmount) / _priceEthAmount;
+
+            IERC20(kanaToken).transfer(
+                mapOrderInfo[i].addrUser,
+                amountKanaRelease
+            );
+            mapOrderInfo[i].release = true;
+            mapOrderInfo[i].updateTime = now;
+            currIndex = i;
+
+            emit EventRelease(mapOrderInfo[i].addrUser, amountKanaRelease);
+        }
+
+        _releaseIndex = int256(currIndex);
     }
 
     function totalSupply() public view returns (uint256) {
@@ -324,23 +348,38 @@ contract KanaShop is Ownable {
         return _decimalsKana;
     }
 
-    function setPrice(uint256 amountKana, uint256 amountEth) public onlyOwner {
-        require(
-            amountKana / (10**uint256(_decimalsKana)) >
-                amountEth / (10**uint256(_decimalsETH)),
-            "kana price too high"
-        );
+    function setRawPrice(uint256 amountKana, uint256 amountEth)
+        public
+        onlyOwner
+    {
+        require(_getRate(amountKana, amountEth) >= 1, "kana price too high");
 
         _priceKanaAmount = amountKana;
-        _priceEthAmount = amountEth;        
+        _priceEthAmount = amountEth;
     }
 
-    function getPrice()
+    function getRawPrice()
         public
         view
         returns (uint256 amountKana, uint256 amountEth)
     {
         amountKana = _priceKanaAmount;
         amountEth = _priceEthAmount;
+    }
+
+    function _getRate(uint256 amountKana, uint256 amountEth)
+        internal
+        view
+        returns (uint256)
+    {
+        require(_decimalsETH >= _decimalsKana, "decimal error");
+
+        return
+            (amountKana * 10**uint256(_decimalsETH - _decimalsKana)) /
+            amountEth;
+    }
+
+    function getRate() public view returns (uint256) {
+        return _getRate(_priceKanaAmount, _priceEthAmount);
     }
 }
