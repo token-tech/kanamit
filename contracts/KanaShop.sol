@@ -159,21 +159,48 @@ contract KanaShop is Ownable {
 
     string public _name = "KanaToken shop";
     string public _symbol = "KanaShop";
-    uint8 public _decimalsETH = 18;
+    uint8 public _decimalsKana= 8;
+    uint8 public _decimalsETH = 18;    
+
+    uint256 _priceKanaAmount; //兑换比例；
+    uint256 _priceEthAmount; //兑换比例；
 
     uint256 private _totalSellLimit = 200 * 10**uint256(_decimalsETH); //销售总量限制，200 ETH
     uint256 private _totalsold; //已售出总量；
+
+    uint256 _releaseIndex; //已释放数组记录的下标
+
+    struct OrderInfo {
+        address addrUser;
+        uint256 amount;
+        bool release; //是否释放
+        uint256 createTime; //购买时间；unixtime；精度，秒；
+        uint256 updateTime; //释放时间；unixtime；精度，秒；
+    }
+
+    struct OrderList {
+        address addrUser;
+        uint256[] arrOrderId;
+    }
+
+    uint256[] arrOrderTimeStamp; //订单时间戳数据；数组下标就是 orderId
+    mapping(uint256 => OrderInfo) private mapOrderInfo; //map<orderId, OrderInfo>
+    mapping(address => OrderList) private mapAddressOrderList; //map<address, OrderList>
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event EventBuyKana(address indexed dst, uint256 wad);
     event EventOwnerWithdraw(address indexed owner, uint256 amount);
 
-    mapping(address => uint256) public balanceOf;
-    mapping(address => mapping(address => uint256)) public allowance;
-
     constructor(address _kToken) public {
         kanaToken = _kToken;
         _totalsold = 0;
+        _releaseIndex = 0;
+
+        _priceKanaAmount = 0;
+        _priceEthAmount = 0;
     }
 
     fallback() external payable {
@@ -188,6 +215,8 @@ contract KanaShop is Ownable {
         uint256 min = 1 * 10**uint256(_decimalsETH);
         uint256 max = 10 * 10**uint256(_decimalsETH);
 
+        uint256 tsOrder = now; //时间戳；
+
         //单次购买限额
         require(msg.value >= min && msg.value <= max, "amount limit");
 
@@ -200,10 +229,62 @@ contract KanaShop is Ownable {
         //销售总量限制
         require(_totalsold + msg.value <= _totalSellLimit, "total sell limit");
 
+        //订单信息
+        arrOrderTimeStamp.push(tsOrder);
+        uint256 currOrderId = arrOrderTimeStamp.length - 1;
+
+        mapOrderInfo[currOrderId].addrUser = msg.sender;
+        mapOrderInfo[currOrderId].amount = msg.value;
+        mapOrderInfo[currOrderId].release = false;
+        mapOrderInfo[currOrderId].createTime = tsOrder;
+        mapOrderInfo[currOrderId].updateTime = tsOrder;
+
+        //订单列表
+        mapAddressOrderList[msg.sender].addrUser = msg.sender;
+        mapAddressOrderList[msg.sender].arrOrderId.push(currOrderId);
+
+        //金额更新
         balanceOf[msg.sender] += msg.value;
         _totalsold += msg.value;
 
         emit EventBuyKana(msg.sender, msg.value);
+    }
+
+    function getOrdersByAddress(address addrUser)
+        public
+        view
+        returns (
+            uint256 totalOrders,
+            address[] memory addrUsers,
+            uint256[] memory amounts,
+            bool[] memory releases,
+            uint256[] memory createTimes,
+            uint256[] memory updateTimes
+        )
+    {
+        totalOrders = mapAddressOrderList[addrUser].arrOrderId.length;
+
+        address[] memory retAddrUsers = new address[](totalOrders);
+        uint256[] memory retAmounts = new uint256[](totalOrders);
+        bool[] memory retReleases = new bool[](totalOrders);
+        uint256[] memory retCreateTimes = new uint256[](totalOrders);
+        uint256[] memory retUpdateTimes = new uint256[](totalOrders);
+
+        for (uint256 i = 0; i < totalOrders; i++) {
+            uint256 currOrderId = mapAddressOrderList[addrUser].arrOrderId[i];
+
+            retAddrUsers[i] = mapOrderInfo[currOrderId].addrUser;
+            retAmounts[i] = mapOrderInfo[currOrderId].amount;
+            retReleases[i] = mapOrderInfo[currOrderId].release;
+            retCreateTimes[i] = mapOrderInfo[currOrderId].createTime;
+            retUpdateTimes[i] = mapOrderInfo[currOrderId].updateTime;
+        }
+
+        addrUsers = retAddrUsers;
+        amounts = retAmounts;
+        releases = retReleases;
+        createTimes = retCreateTimes;
+        updateTimes = retUpdateTimes;
     }
 
     function ownerWithdraw(uint256 wad) public onlyOwner {
@@ -236,5 +317,9 @@ contract KanaShop is Ownable {
 
     function decimalsETH() public view returns (uint8) {
         return _decimalsETH;
+    }
+
+    function decimalsKana() public view returns(uint8){
+        return _decimalsKana;
     }
 }
