@@ -16,6 +16,7 @@ describe("=========================== KanaShop MISC ==========================="
 
     let decimalKanaToken = await kanaToken.decimals();
     let decimalETH = await kanaShop.decimalsETH();
+    expect(decimalKanaToken).to.equal(await kanaShop.decimalsKana());
 
     // //tmpTest
     // await kanaShop.tmpTest().then(function (balance) {
@@ -130,6 +131,29 @@ describe("=========================== KanaShop MISC ==========================="
       printArrayNumber(result.createTimes, "createTimes----");
       printArrayNumber(result.updateTimes, "updatetimes---");
     });
+
+
+
+    console.log('--------------price---------------');
+    //setPrice--owner 校验；放开以下注释，会报错    
+    // await kanaShop.connect(user1).setPrice(ethers.utils.parseUnits("0.00006", decimalKanaToken) ,ethers.utils.parseEther("1"));
+
+    //setPrice--兑换比例过高校验，以下注释放开会报错
+    // await kanaShop.setPrice(ethers.utils.parseUnits("1", decimalKanaToken), ethers.utils.parseEther("1"));
+
+    //setPrice
+    await kanaShop.setPrice(ethers.utils.parseUnits("45000000", decimalKanaToken), ethers.utils.parseEther("1"));
+
+    // getPrice
+    await kanaShop.getPrice().then(function (result) {
+      // console.log('result', result);
+      console.log('amountKana', ethers.utils.formatUnits(result.amountKana, decimalKanaToken));
+      console.log('amountEth', ethers.utils.formatEther(result.amountEth));
+
+      // console.log('amountKana',result.amountKana.toString());
+    });
+
+
   });
 
 

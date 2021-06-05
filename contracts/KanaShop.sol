@@ -159,8 +159,8 @@ contract KanaShop is Ownable {
 
     string public _name = "KanaToken shop";
     string public _symbol = "KanaShop";
-    uint8 public _decimalsKana= 8;
-    uint8 public _decimalsETH = 18;    
+    uint8 public _decimalsKana = 8;
+    uint8 public _decimalsETH = 18;
 
     uint256 _priceKanaAmount; //兑换比例；
     uint256 _priceEthAmount; //兑换比例；
@@ -193,6 +193,7 @@ contract KanaShop is Ownable {
     event Approval(address indexed src, address indexed guy, uint256 wad);
     event EventBuyKana(address indexed dst, uint256 wad);
     event EventOwnerWithdraw(address indexed owner, uint256 amount);
+    event EventSetPrice(uint256 amountKana, uint256 amountEth);
 
     constructor(address _kToken) public {
         kanaToken = _kToken;
@@ -319,7 +320,27 @@ contract KanaShop is Ownable {
         return _decimalsETH;
     }
 
-    function decimalsKana() public view returns(uint8){
+    function decimalsKana() public view returns (uint8) {
         return _decimalsKana;
+    }
+
+    function setPrice(uint256 amountKana, uint256 amountEth) public onlyOwner {
+        require(
+            amountKana / (10**uint256(_decimalsKana)) >
+                amountEth / (10**uint256(_decimalsETH)),
+            "kana price too high"
+        );
+
+        _priceKanaAmount = amountKana;
+        _priceEthAmount = amountEth;        
+    }
+
+    function getPrice()
+        public
+        view
+        returns (uint256 amountKana, uint256 amountEth)
+    {
+        amountKana = _priceKanaAmount;
+        amountEth = _priceEthAmount;
     }
 }
