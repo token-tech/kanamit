@@ -164,42 +164,9 @@ contract KanaShop is Ownable {
     uint256 private _totalSellLimit = 200 * 10**uint256(_decimalsETH); //销售总量限制，200 ETH
     uint256 private _totalsold; //已售出总量；
 
-    struct Bid {
-        uint256 bidId;
-        uint256 reqId; //对应于中心化系统的 bid表的id字段
-        address bidder; //出价地址
-        uint256 amount; //出价金额
-        bool cancel; //是否取消
-    }
-
-    struct AuctionInfo {
-        uint256 auctionId;
-        uint256 hashUri;
-        uint256 status; //状态；0，拍卖关闭；1，拍卖开启
-        //Bid数据结构--数组+map
-        uint256[] arrReqId; //出价信息数组；数据下标即为 bidId
-        mapping(uint256 => Bid) mapReqIdBid; //map<reqId, Bid>
-    }
-
-    uint256 private _nextAuctionId; //下一个可用的拍卖ID；
-    mapping(uint256 => AuctionInfo) private mapAuctionInfo; //map<auctionId, auctionInfo>
-    mapping(uint256 => uint256) private mapUriAuctionId; //map<hashUri, AuctionId>
-    mapping(uint256 => address) private mapUriOwner; //map<hashUri, addressOwner>
-
     event Approval(address indexed src, address indexed guy, uint256 wad);
-    event Transfer(address indexed src, address indexed dst, uint256 wad);
     event EventBuyKana(address indexed dst, uint256 wad);
-    event Withdrawal(address indexed src, uint256 wad);
-
     event EventOwnerWithdraw(address indexed owner, uint256 amount);
-    event EventCreate(address indexed owner, string uri, uint256 assetId);
-    event EventBid(address indexed bidder, uint256 amount, uint256 reqId);
-    event EventAccept(
-        address indexed winner,
-        uint256 amount,
-        uint256 reqId,
-        bool accept
-    );
 
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -216,18 +183,6 @@ contract KanaShop is Ownable {
     receive() external payable {
         buyKana();
     }
-
-    // function tmpTest() public view returns (uint256) {
-    //     return IERC20(kanaToken).balanceOf(address(this));
-    // }
-
-    // function tmpTransfer(address to, uint256 amount)
-    //     public
-    //     onlyOwner
-    //     returns (bool)
-    // {
-    //     return IERC20(kanaToken).transfer(to, amount);
-    // }
 
     function buyKana() public payable {
         uint256 min = 1 * 10**uint256(_decimalsETH);
@@ -254,6 +209,11 @@ contract KanaShop is Ownable {
     function ownerWithdraw(uint256 wad) public onlyOwner {
         payable(address(this.owner())).transfer(wad);
         emit EventOwnerWithdraw(address(this.owner()), wad);
+    }
+
+    function release() public onlyOwner {
+        //     return IERC20(kanaToken).balanceOf(address(this));
+        //     return IERC20(kanaToken).transfer(to, amount);
     }
 
     function totalSupply() public view returns (uint256) {
