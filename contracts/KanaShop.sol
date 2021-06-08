@@ -159,8 +159,8 @@ contract KanaShop is Ownable {
 
     string public _name = "KanaToken shop";
     string public _symbol = "KanaShop";
-    uint8 public _decimalsKana = 8;
-    uint8 public _decimalsETH = 18;
+    uint8 private _decimalsKana = 8;
+    uint8 private _decimalsETH = 18;
 
     uint256 _priceKanaAmount; //兑换比例；
     uint256 _priceEthAmount; //兑换比例；

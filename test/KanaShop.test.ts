@@ -26,6 +26,19 @@ describe("=========================== KanaShop MISC ==========================="
     // //--------tmpTransfer--------
     // await kanaShop.tmpTransfer(user0.getAddress(), ethers.utils.parseUnits("20", decimalKanaToken));
 
+    console.log('--------------total info---------------');
+    // totalSellLimit
+    await kanaShop.totalSellLimit().then(function (totalSellLimit) {
+      console.log('totalSellLimit', totalSellLimit.toString());
+    });
+
+    // totalSold
+    await kanaShop.totalSold().then(function (totalSold) {
+      console.log('totalSold', totalSold.toString());
+    });
+
+
+
     console.log('--------------address list---------------');
     //地址列表
     console.log('kanaToken', kanaToken.address, 'kanaShop', kanaShop.address);
@@ -257,6 +270,11 @@ describe("=========================== KanaShop MISC ==========================="
 
     await kanaToken.balanceOf(user1.getAddress()).then(function (balance) {
       console.log('KANA_user1_Balance', ethers.utils.formatUnits(balance, decimalKanaToken));
+    });
+
+    // totalSold
+    await kanaShop.totalSold().then(function (totalSold) {
+      console.log('totalSold', totalSold.toString());
     });
 
     console.log('--------------release again---------------');

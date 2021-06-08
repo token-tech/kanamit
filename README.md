@@ -55,3 +55,11 @@ $ node KanamitTrade.js
 ...
 
 ```
+
+## KanaToken和KanaShop部署
+- KanaToken部署
+- KanaShop部署
+- KanaToken mint给owner
+- owner把mint到的KanaToken转账给KanaShop
+
+
