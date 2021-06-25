@@ -1,50 +1,52 @@
 # **ReadMe**
 
-## 参考链接
-- [hardhat 教程及 hardhat-deploy 插件使用](https://learnblockchain.cn/article/2354)
+## Reference 
 
-## hardhat环境配置
 
+- [hardhat and hardhat-deploy Plugin Tutorial]https://learnblockchain.cn/article/2354
+
+## hardhat  Development Information
 ```
-##初始安装
+##Set up
 $ yarn init --yes
 $ yarn add -D hardhat
 
-## 编辑 hardhat.config.ts
+## Edit hardhat.config.ts
 
-## 安装依赖
+## Installing Dependencies
 $ yarn add -D hardhat-deploy hardhat-deploy-ethers ethers chai chai-ethers mocha @types/chai @types/mocha @types/node typescript ts-node dotenv
 
 
-## 编辑 tsconfig.json。
+## Edit tsconfig.json。
 
 ```
 
-## 编译智能合约
+## Compiling contract
 
-- [可选]单个或者少量的.sol，也可以先用 remix编译，编译通过后再放hardhat编译，基本不会报错；
+- [Optional]One or a few .sol, you can use remix to compiling first, then compiling by hardhat to avoid less errors；
+
 
 ```
 $ yarn hardhat compile
 ```
 
-## 部署合约
+## Deploying contract
 
 ```
-## 编辑 deploy/001_deploy_token.ts
+## Edit deploy/001_deploy_token.ts
 
-## 部署合约
+## Deploying contract
 $ yarn hardhat deploy
 
 ```
 
-## 合约单元测试
+## Running unit tests
 
 ```
 $ npx hardhat test
 ```
 
-## 链上合约测试
+## On-Chain Contract Test
 
 ```
 $ pwd 
@@ -55,3 +57,5 @@ $ node KanamitTrade.js
 ...
 
 ```
+
+
